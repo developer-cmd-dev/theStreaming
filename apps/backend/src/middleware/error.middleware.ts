@@ -5,7 +5,6 @@ export const ErrorMiddleware: ErrorRequestHandler = (err, req, res, next) => {
   const statusCode = err instanceof CustomError ? err.statusCode : 500;
   const message = err.message || 'Internal Server Error';
 
-  console.error(`[Error] ${req.method} ${req.path} - ${message}`);
   if (statusCode === 500) {
     console.error(err.stack);
   }

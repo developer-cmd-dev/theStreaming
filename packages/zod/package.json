@@ -1,5 +1,5 @@
 {
-  "name": "zod",
+  "name": "@repo/zod",
   "module": "index.ts",
   "type": "module",
   "private": true,

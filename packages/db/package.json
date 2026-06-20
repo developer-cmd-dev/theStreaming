@@ -1,10 +1,10 @@
 {
-  "name": "db",
+  "name": "@repo/db",
   "module": "index.ts",
   "type": "module",
   "private": true,
   "exports":{
-    "./client":"./index.ts"
+    "./prisma":"./index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

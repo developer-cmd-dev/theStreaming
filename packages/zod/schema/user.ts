@@ -10,7 +10,7 @@ export const userSchema = z.object({
   username: z
     .string()
     .min(3)
-    .max(32)
+    .max(15)
     .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
   role: roleSchema,
   createdAt: z.coerce.date(),
@@ -27,6 +27,7 @@ export const createUserSchema = userSchema.pick({
 /** Safe user for API responses */
 export const publicUserSchema = userSchema.omit({
   password: true,
+  role:true
 });
 
 /** Partial updates */
