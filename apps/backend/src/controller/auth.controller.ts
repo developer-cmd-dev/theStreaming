@@ -1,11 +1,10 @@
 import { createUserSchema, publicUserSchema } from "@repo/zod/zod";
 import type { Request, Response } from "express";
-import { ZodError } from "zod";
 import { CustomError } from "../error/customError";
 import { prisma } from '@repo/db/prisma'
 import HttpResponse from "../utils/HttpResponse";
 import { loginUserScheam } from "../../../../packages/zod/schema/user";
-import jwt, { JsonWebTokenError, TokenExpiredError, verify } from "jsonwebtoken";
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
 
 
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY as string;
@@ -118,13 +117,28 @@ export async function login(req: Request, res: Response) {
         httpOnly: true,
         secure: true,
         sameSite: "strict",
-        maxAge: 30 * 24 * 60 * 60 * 1000 // 7 days
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
 
     })
 
     const { data: responseData } = publicUserSchema.safeParse(getUser);
 
     HttpResponse.success(res, { ...responseData, access_token });
+}
+
+
+export async function logut(req:Request,res:Response) {
+    
+    const userId = req.body;
+
+    await prisma.refreshToken.delete({
+        where:{
+            userId
+        }
+    })
+
+    HttpResponse.success(res,{});
+
 }
 
 export async function refreshToken(req: Request, res: Response) {
