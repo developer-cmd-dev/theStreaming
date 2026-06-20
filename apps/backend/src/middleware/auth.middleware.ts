@@ -15,19 +15,19 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
             try {
 
                 const verify = <jwt.UserJwtPayload>jwt.verify(extractedToken, JWT_SECRET_KEY);
-                req.userId=verify.userId
-                req.username=verify.username
+                req.userId = verify.userId
+                req.username = verify.username
                 next()
             } catch (error) {
                 if (error instanceof JsonWebTokenError) {
-                    throw new CustomError("SessionTimedOut",401);
+                    throw new CustomError("SessionTimedOut", 401);
                 }
             }
         }
 
     } else {
-       throw new CustomError("Invalid Token", 401)
-  
+        throw new CustomError("Invalid Token", 401)
+
     }
 
 }
