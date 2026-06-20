@@ -24,6 +24,11 @@ export const createUserSchema = userSchema.pick({
   username: true,
 });
 
+export const loginUserScheam = userSchema.pick({
+  username:true,
+  password:true
+})
+
 /** Safe user for API responses */
 export const publicUserSchema = userSchema.omit({
   password: true,
@@ -38,3 +43,4 @@ export type User = z.infer<typeof userSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type PublicUser = z.infer<typeof publicUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type LoginUserInput = z.infer<typeof loginUserScheam>;
