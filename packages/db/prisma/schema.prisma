@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  username  String   @unique
+  role      Role     @default(USER)
+
+  // subscriptions: Users who subscribe to this user
+  subscribers User[] @relation("UserSubscribers")
+  // follows: Users whom this user is following
+  follows     User[] @relation("UserFollows")
+
+  // Streams (assumes streams owned by user)
+  streams Stream[]
+
+  refreshToken RefreshToken?
+
+  // Reverse fields for self-relations
+  subscribedTo User[] @relation("UserSubscribers")
+  followedBy   User[] @relation("UserFollows")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Stream {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  isLive      Boolean
+  thumbnail   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  chat        Chat?
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("refresh_tokens")
+}
+
+model Chat {
+  id        String   @id @default(uuid())
+  streamId  String   @unique
+  stream    Stream   @relation(fields: [streamId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  watching  Int      @default(0)
+  message   Message?
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  chatId    String   @unique
+  chat      Chat     @relation(fields: [chatId], references: [id])
+}
