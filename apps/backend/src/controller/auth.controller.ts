@@ -1,4 +1,4 @@
-import { createUserSchema, publicUserSchema } from "@repo/zod/zod";
+import { createUserSchema, publicUserSchema } from "@repo/zod/schema";
 import type { Request, Response } from "express";
 import { CustomError } from "../error/customError";
 import { prisma } from '@repo/db/prisma'
@@ -87,7 +87,7 @@ export async function login(req: Request, res: Response) {
         userId: getUser.id,
         username: getUser.username
     }
-    const access_token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: "1m" });
+    const access_token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: "3h" });
     const refresh_token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: "30d" });
     const existingRefreshToken = await prisma.refreshToken.findFirst({
         where: {

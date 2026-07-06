@@ -45,10 +45,11 @@ enum Role {
 
 model Stream {
   id          String   @id @default(uuid())
-  title       String
-  description String
+  title       String?
+  description String?
   isLive      Boolean
-  thumbnail   String
+  thumbnail   String?
+  subscriberOnly Boolean
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String

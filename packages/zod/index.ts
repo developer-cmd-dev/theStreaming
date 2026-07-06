@@ -11,4 +11,13 @@ export {
   type UpdateUserInput,
 } from "./schema/user";
 
-import { ZodError } from "zod";
+
+export {
+  createStreamSchema,
+  updateStreamSchema,
+  streamSchema,
+  type Stream,
+  type CreateStreamInput,
+  type UpdateStreamInput
+} from "./schema/stream"
+

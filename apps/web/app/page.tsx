@@ -1,6 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/button";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useRef } from "react";
 
 export default function Page() {
@@ -39,10 +39,18 @@ export default function Page() {
 
       pc.setLocalDescription(offer)
 
-      const response = await axios.post("http://localhost:8080/api/v1/signaling/offer", {
-        sdp: offer.sdp,
-        type: offer.type,
-      });
+      const response = await axios.post("http://localhost:8080/api/v1/connect-media-server", 
+       {
+        sdp:offer.sdp,
+        streamId:4545
+       }
+        ,
+      {
+        headers:{
+          "Authorization":`Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2U2ODY4ZS05OTlhLTRjNDctYjNkYy1hMmI1OTZiMmM2NTgiLCJ1c2VybmFtZSI6ImphbmVfZG9lIiwiaWF0IjoxNzgzMzU5Njc2LCJleHAiOjE3ODMzNzA0NzZ9.qwOmglxoffrTfrKG-Ihia_Vi2vmfjqWwNjHgpNqwkYQ`
+        }
+      }
+      );
 
     
       await pc.setRemoteDescription({
@@ -52,7 +60,9 @@ export default function Page() {
 
 
     } catch (error) {
-      console.log(error)
+     if(error instanceof AxiosError){
+      console.log(error.response?.data)
+     }
     }
 
 
@@ -74,11 +84,15 @@ pc.addTransceiver("audio", { direction: "recvonly" });
 
 
 
-    const response = await axios.post("http://localhost:8080/api/v1/stream-join/offer", {
-      sdp: offer.sdp,
-      type: offer.type,
-    });
-
+    const response = await axios.post(
+      "http://localhost:8889/live/my-stream/whep",
+      offer.sdp,
+      {
+        headers: {
+          "Content-Type": "application/sdp",
+        },
+      }
+    );
     console.log(response.data)
 
     pc.setRemoteDescription({

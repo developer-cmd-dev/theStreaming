@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "exports":{
-    "./zod":"./index.ts"
+    "./schema":"./index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
