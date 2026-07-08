@@ -2,12 +2,14 @@
 import { Button } from "@/components/ui/button";
 import axios, { AxiosError } from "axios";
 import { useRef } from "react";
-
+import { type HttpResponse } from '../node_modules/@repo/zod/index'
 export default function Page() {
 
   const locationVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  const recieverVideoRef= useRef<HTMLVideoElement|null>(null);
+  const recieverVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  const peerConnection = useRef<RTCPeerConnection | null>(null);
 
   async function goLive() {
 
@@ -17,10 +19,12 @@ export default function Page() {
 
       const pc = new RTCPeerConnection();
 
+
+
       pc.oniceconnectionstatechange = () => {
         console.log("ICE:", pc.iceConnectionState);
       };
-      
+
       pc.onconnectionstatechange = () => {
         console.log("Connection:", pc.connectionState);
       };
@@ -29,6 +33,21 @@ export default function Page() {
       stream.getTracks().forEach(tracks => {
         pc.addTrack(tracks, stream)
       })
+
+      const videoTransceiver = pc
+        .getTransceivers()
+        .find((t) => t.sender.track?.kind === "video");
+
+      const capabilities =
+        RTCRtpSender.getCapabilities("video");
+
+        const h264Codecs = capabilities?.codecs.filter(
+          (codec) => codec.mimeType === "video/H264"
+        );
+
+        if (videoTransceiver && h264Codecs?.length) {
+          videoTransceiver.setCodecPreferences(h264Codecs);
+        }
 
       if (locationVideoRef.current) {
         locationVideoRef.current.srcObject = stream;
@@ -39,30 +58,36 @@ export default function Page() {
 
       pc.setLocalDescription(offer)
 
-      const response = await axios.post("http://localhost:8080/api/v1/connect-media-server", 
-       {
-        sdp:offer.sdp,
-        streamId:4545
-       }
-        ,
-      {
-        headers:{
-          "Authorization":`Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2U2ODY4ZS05OTlhLTRjNDctYjNkYy1hMmI1OTZiMmM2NTgiLCJ1c2VybmFtZSI6ImphbmVfZG9lIiwiaWF0IjoxNzgzMzU5Njc2LCJleHAiOjE3ODMzNzA0NzZ9.qwOmglxoffrTfrKG-Ihia_Vi2vmfjqWwNjHgpNqwkYQ`
+      const response = await axios.post("http://localhost:8080/api/v1/connect-media-server",
+        {
+          sdp: offer.sdp,
+          type: "offer",
+          streamId: "94e194e4-6da0-4ee8-a289-45ba98d697ca"
         }
-      }
+        ,
+        {
+          headers: {
+            "Authorization": `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2U2ODY4ZS05OTlhLTRjNDctYjNkYy1hMmI1OTZiMmM2NTgiLCJ1c2VybmFtZSI6ImphbmVfZG9lIiwiaWF0IjoxNzgzNTQ0MTg5LCJleHAiOjE3ODM1NTQ5ODl9.R_vZqlhw0O9mC7crlm4_YFRym4GIulSSAFdnpn0XRhQ`
+          }
+        }
       );
 
-    
+      const result = response.data as HttpResponse
+
+
+
+
       await pc.setRemoteDescription({
-        type:'answer',
-        sdp:response.data
+        type: 'answer',
+        sdp: result.data.sdpAnswer
       })
 
-
+   const recordingResponse = await   axios.get("http://localhost:8080/api/v1/record-streaming/94e194e4-6da0-4ee8-a289-45ba98d697ca",)
+      console.log(recordingResponse.data)
     } catch (error) {
-     if(error instanceof AxiosError){
-      console.log(error.response?.data)
-     }
+      if (error instanceof AxiosError) {
+        console.log(error.response?.data)
+      }
     }
 
 
@@ -73,46 +98,48 @@ export default function Page() {
   async function joinLive() {
 
     try {
-      
-    const pc = new RTCPeerConnection();
 
-    pc.addTransceiver("video", { direction: "recvonly" });
-pc.addTransceiver("audio", { direction: "recvonly" });
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer)
+      const pc = new RTCPeerConnection();
 
-
+      pc.addTransceiver("video", { direction: "recvonly" });
+      pc.addTransceiver("audio", { direction: "recvonly" });
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer)
 
 
-    const response = await axios.post(
-      "http://localhost:8889/live/my-stream/whep",
-      offer.sdp,
-      {
-        headers: {
-          "Content-Type": "application/sdp",
-        },
+
+
+      const response = await axios.post(
+        "http://localhost:8889/live/94e194e4-6da0-4ee8-a289-45ba98d697ca/whep",
+        offer.sdp,
+        {
+          headers: {
+            "Content-Type": "application/sdp",
+          },
+        }
+      );
+
+      pc.setRemoteDescription({
+        type: "answer",
+        sdp: response.data
+      });
+
+      pc.ontrack = async (event) => {
+        const stream = event.streams[0];
+
+        if (recieverVideoRef.current) {
+          recieverVideoRef.current.srcObject = stream ?? null;
+          await recieverVideoRef.current.play()
+        }
       }
-    );
-    console.log(response.data)
-
-    pc.setRemoteDescription({
-      type:"answer",
-      sdp:response.data
-    });
-
-    pc.ontrack = async(event)=>{
-      const stream = event.streams[0];
-
-      if(recieverVideoRef.current){
-        recieverVideoRef.current.srcObject=stream ?? null;
-         await recieverVideoRef.current.play()
-      }
-    }
     } catch (error) {
       console.log(error)
     }
-    
+
   }
+
+
+
 
 
 
@@ -130,11 +157,11 @@ pc.addTransceiver("audio", { direction: "recvonly" });
         className="w-1/2 h-1/2"
       />
 
-<Button size="lg" onClick={joinLive}>
+      <Button size="lg" onClick={joinLive}>
         join live
       </Button>
 
-<video
+      <video
         ref={recieverVideoRef}
         autoPlay
         playsInline

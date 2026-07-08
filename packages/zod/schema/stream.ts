@@ -21,13 +21,13 @@ export const createStreamSchema = streamSchema.pick({
   thumbnail:true,
   subscriberOnly:true,
   isLive:true,
-  userId:true
 })
 
 
-export const connectMediaServer = z.object({
+export const connectMediaServerSchema = z.object({
   sdp:z.string(),
-  type:z.string()
+  type:z.string(),
+  streamId:z.string()
 })
 
 // For updating a Stream (usually partial except userId and id)
@@ -39,3 +39,4 @@ export const updateStreamSchema = streamSchema.partial().extend({
 export type Stream = z.infer<typeof streamSchema>;
 export type CreateStreamInput = z.infer<typeof createStreamSchema>;
 export type UpdateStreamInput = z.infer<typeof updateStreamSchema>;
+export type connectMediaServerInput = z.infer<typeof connectMediaServerSchema>

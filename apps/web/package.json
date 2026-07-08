@@ -29,6 +29,7 @@
     "@next/eslint-plugin-next": "^16.2.0",
     "@repo/eslint-config": "*",
     "@repo/tailwind-config": "*",
+    "@repo/zod":"*",
     "@repo/typescript-config": "*",
     "@tailwindcss/postcss": "^4.1.5",
     "@types/node": "^22.15.30",

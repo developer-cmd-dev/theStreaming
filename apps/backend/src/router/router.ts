@@ -2,7 +2,7 @@ import { Router } from "express";
 import { healthCheck } from "../controller/healthcheck.controller";
 import { login, logut, refreshToken, signUp } from "../controller/auth.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
-import { createStream,connectMediaServer,endStream } from "../controller/streaming.controller";
+import { createStream,connectMediaServer,endStream, startRecordingStream } from "../controller/streaming.controller";
 
 const router = Router();
 router.get('/health',healthCheck);
@@ -15,6 +15,7 @@ router.post('/logout',logut)
 router.post('/create-stream',authMiddleware,createStream);
 router.post('/connect-media-server',authMiddleware,connectMediaServer);
 router.post('/end-stream',authMiddleware,endStream)
+router.get('/record-streaming/:streamId',startRecordingStream)
 
 
 

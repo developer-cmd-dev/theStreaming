@@ -6,7 +6,7 @@ export const ErrorMiddleware: ErrorRequestHandler = (err, req, res, next) => {
   const message = err.message || 'Internal Server Error';
 
   if (statusCode === 500) {
-    console.error(err.stack);
+    console.error(err);
   }
 
   res.status(statusCode).json({
