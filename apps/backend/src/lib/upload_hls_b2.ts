@@ -53,11 +53,8 @@ export async function uploadFolder(localDir: string, remotePrefix: string): Prom
             promise.push(result)
         }
 
-        const result = await Promise.all(promise)
+         await Promise.all(promise)
 
-      
-
-        console.log(result)
         const extractFolderPath = localDir.replace("/hls_video","");
         fs.rmdirSync(extractFolderPath,{recursive:true})
         if(isM3U8FileUploaded){

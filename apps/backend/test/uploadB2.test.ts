@@ -10,7 +10,7 @@ test('uploadfile',async()=>{
     const filename = 'output.m3u8'
 
     const localPath = path.join(localDir,filename)
-    const result = await uploadFile(localPath,`remotePrefix/${filename}`);
+    const result = await uploadFile(localPath,`remotePrefix/${filename}`,filename);
     console.log(result)
     expect(result?.$metadata.httpStatusCode).toBe(200)
 })
@@ -22,6 +22,5 @@ test('uploadFolder',async()=>{
 
 
     const result = await uploadFolder(localDir,`94e194e4-6da0-4ee8-a289-45ba98d697`);
-    const hasSuccess = result.some((value)=>value.$metadata.httpStatusCode===200);
-    expect(hasSuccess).toBe(true);
+    expect(result).toBe("output.m3u8");
 },30000)

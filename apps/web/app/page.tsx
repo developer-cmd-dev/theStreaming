@@ -61,7 +61,7 @@ export default function Page() {
         {
           sdp: offer.sdp,
           type: "offer",
-          streamId: "94e194e4-6da0-4ee8-a289-45ba98d697ca"
+          streamId: "3b560b13-1db5-4b79-adab-489381ed9f90"
         }
         ,
         {
@@ -81,7 +81,7 @@ export default function Page() {
         sdp: result.data.sdpAnswer
       })
 
-      const recordingResponse = await axios.get("http://localhost:8080/api/v1/record-streaming/94e194e4-6da0-4ee8-a289-45ba98d697ca",)
+      const recordingResponse = await axios.get("http://localhost:8080/api/v1/record-streaming/3b560b13-1db5-4b79-adab-489381ed9f90",)
       console.log(recordingResponse.data)
     } catch (error) {
       if (error instanceof AxiosError) {
