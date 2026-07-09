@@ -6,6 +6,8 @@ import HttpResponse from "../utils/HttpResponse";
 import  axios, { AxiosError } from 'axios';
 import { connectMediaServerSchema } from "../../../../packages/zod/schema/stream";
 import {startRecordingWithRetry} from '../rtsp-recording/rtsp-cleint'
+import { recordStreaming } from "../lib/ffmpeg_record_streaming";
+import { convertRecordedInToHLS } from "../lib/ffmpeg_convert_recording_hls";
 
 export async function createStream(req:Request,res:Response) {
     
@@ -84,6 +86,7 @@ export async function connectMediaServer(req: Request, res: Response) {
 }
 
 export async function startRecordingStream(req:Request,res:Response) {
+   try {
     const streamId=req.params.streamId
 
     
@@ -95,8 +98,16 @@ export async function startRecordingStream(req:Request,res:Response) {
         throw new CustomError("Data is in array",404)
     }
 
-    startRecordingWithRetry(streamId)
+    const recordedFileName = await recordStreaming(streamId);
+    if(recordedFileName){
+      await  convertRecordedInToHLS(recordedFileName,streamId)
+    }
     HttpResponse.success(res,{},'success',200)
+   } catch (error) {
+        if(error instanceof Error){
+           throw new CustomError(error.message,400)
+        }
+   }
     
 }
 

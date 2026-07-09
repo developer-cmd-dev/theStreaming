@@ -9,7 +9,6 @@ export default function Page() {
 
   const recieverVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  const peerConnection = useRef<RTCPeerConnection | null>(null);
 
   async function goLive() {
 
@@ -41,13 +40,13 @@ export default function Page() {
       const capabilities =
         RTCRtpSender.getCapabilities("video");
 
-        const h264Codecs = capabilities?.codecs.filter(
-          (codec) => codec.mimeType === "video/H264"
-        );
+      const h264Codecs = capabilities?.codecs.filter(
+        (codec) => codec.mimeType === "video/H264"
+      );
 
-        if (videoTransceiver && h264Codecs?.length) {
-          videoTransceiver.setCodecPreferences(h264Codecs);
-        }
+      if (videoTransceiver && h264Codecs?.length) {
+        videoTransceiver.setCodecPreferences(h264Codecs);
+      }
 
       if (locationVideoRef.current) {
         locationVideoRef.current.srcObject = stream;
@@ -67,7 +66,7 @@ export default function Page() {
         ,
         {
           headers: {
-            "Authorization": `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2U2ODY4ZS05OTlhLTRjNDctYjNkYy1hMmI1OTZiMmM2NTgiLCJ1c2VybmFtZSI6ImphbmVfZG9lIiwiaWF0IjoxNzgzNTQ0MTg5LCJleHAiOjE3ODM1NTQ5ODl9.R_vZqlhw0O9mC7crlm4_YFRym4GIulSSAFdnpn0XRhQ`
+            "Authorization": `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2U2ODY4ZS05OTlhLTRjNDctYjNkYy1hMmI1OTZiMmM2NTgiLCJ1c2VybmFtZSI6ImphbmVfZG9lIiwiaWF0IjoxNzgzNTg2MzUzLCJleHAiOjE3ODM1OTcxNTN9.h8liskrkh7pfexiWHwc5sMaKcVtn21f0VEzpIN7fqRc`
           }
         }
       );
@@ -82,7 +81,7 @@ export default function Page() {
         sdp: result.data.sdpAnswer
       })
 
-   const recordingResponse = await   axios.get("http://localhost:8080/api/v1/record-streaming/94e194e4-6da0-4ee8-a289-45ba98d697ca",)
+      const recordingResponse = await axios.get("http://localhost:8080/api/v1/record-streaming/94e194e4-6da0-4ee8-a289-45ba98d697ca",)
       console.log(recordingResponse.data)
     } catch (error) {
       if (error instanceof AxiosError) {
