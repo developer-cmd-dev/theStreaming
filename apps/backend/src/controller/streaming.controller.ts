@@ -102,10 +102,21 @@ export async function startRecordingStream(req: Request, res: Response) {
         const recordedFileName = await recordStreaming(streamId);
         if (recordedFileName) {
             const localDir = await convertRecordedInToHLS(recordedFileName, streamId);
-            const result = await uploadFolder(localDir, streamId)
-            console.log(localDir)
+            const result = await uploadFolder(localDir, streamId);
+            if(result){
+              await prisma.stream.update({
+                where:{
+                    id:streamId
+                },
+                data:{
+                    playBackKey:result,
+                    isLive:false
+                }
+                
+               })
+            }
         }
-        HttpResponse.success(res, {}, 'success', 200)
+        HttpResponse.success(res, {}, 'Stream Recoreded Successfully', 200)
     } catch (error) {
         if (error instanceof Error) {
             throw new CustomError(error.message, 400)

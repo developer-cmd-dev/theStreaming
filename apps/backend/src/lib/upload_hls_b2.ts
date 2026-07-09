@@ -12,7 +12,7 @@ export function getContentType(filename: string): string {
 
 
 
-export async function uploadFile(localPath: string, remoteKey: string): Promise<PutObjectCommandOutput> {
+export async function uploadFile(localPath: string, remoteKey: string,filename:string): Promise<PutObjectCommandOutput> {
     try {
         const fileBuffer = fs.readFileSync(localPath);
         const result = await b2Client.send(
@@ -21,7 +21,10 @@ export async function uploadFile(localPath: string, remoteKey: string): Promise<
                 Key: remoteKey,
                 Body: fileBuffer,
                 ContentType: getContentType(localPath),
-                ContentLength: fileBuffer.length
+                ContentLength: fileBuffer.length,
+                Metadata:{
+                    "filename":filename
+                }
 
             })
         );
@@ -34,23 +37,34 @@ export async function uploadFile(localPath: string, remoteKey: string): Promise<
     }
 }
 
-export async function uploadFolder(localDir: string, remotePrefix: string): Promise<PutObjectCommandOutput[]> {
+export async function uploadFolder(localDir: string, remotePrefix: string): Promise<string|false> {
 
     try {
         const files = fs.readdirSync(localDir);
 
         const promise: PutObjectCommandOutput[] = []
 
+        let isM3U8FileUploaded=false;
+
         for (const file of files) {
             const localPath = path.join(localDir, file);
-            const result = await uploadFile(localPath, `${remotePrefix}/${file}`);
+            const result = await uploadFile(localPath, `${remotePrefix}/${file}`,file);
+            if(file==='output.m3u8' && result.$metadata.httpStatusCode===200) isM3U8FileUploaded=true;
             promise.push(result)
         }
 
         const result = await Promise.all(promise)
+
+      
+
+        console.log(result)
         const extractFolderPath = localDir.replace("/hls_video","");
-        fs.rmdirSync(extractFolderPath,{recursive:true})
-        return result
+        // fs.rmdirSync(extractFolderPath,{recursive:true})
+        if(isM3U8FileUploaded){
+            return `${remotePrefix}/output.m3u8`
+        }else{
+            return false
+        }
     } catch (error) {
         console.log(error);
         throw error;

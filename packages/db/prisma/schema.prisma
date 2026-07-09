@@ -49,6 +49,7 @@ model Stream {
   description String?
   isLive      Boolean
   thumbnail   String?
+  playBackKey String?
   subscriberOnly Boolean
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
