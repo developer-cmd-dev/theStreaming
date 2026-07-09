@@ -65,9 +65,7 @@ export default function Page() {
         }
         ,
         {
-          headers: {
-            "Authorization": `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2U2ODY4ZS05OTlhLTRjNDctYjNkYy1hMmI1OTZiMmM2NTgiLCJ1c2VybmFtZSI6ImphbmVfZG9lIiwiaWF0IjoxNzgzNjEyMDU2LCJleHAiOjE3ODM2MjI4NTZ9.WTWLQT3m0cCy03MwxaTLcU9bGV16dvJmjsfge5dF9YM`
-          }
+      
         }
       );
 
