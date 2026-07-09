@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path';
 
-export async function convertRecordedInToHLS(recordedFileName: string, streamId: string): Promise<boolean> {
+export async function convertRecordedInToHLS(recordedFileName: string, streamId: string): Promise<string> {
 
     if (!recordedFileName && !streamId) throw new Error("Missing File name");
 
@@ -50,7 +50,7 @@ export async function convertRecordedInToHLS(recordedFileName: string, streamId:
 
         if (await proc.exited === 0) {
             console.log("Stream converted Successfully")
-            return true;
+            return hlsStoreDir;
         } else {
             console.log("Something went wrong while conversion.")
             await Bun.sleep(500);
