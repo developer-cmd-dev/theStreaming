@@ -29,18 +29,22 @@ public sendMessage(socket:WebSocket,message:string,userId:string,username:string
     }
 
     this.viewers.forEach((viewer)=>{
-        if(socket!==viewer.socket){
-            viewer.socket.send(JSON.stringify({
-                type:'chat',
-                data:{
-                    message,
-                    username
-                    
-                }
-            }))
-        }
+        viewer.socket.send(JSON.stringify({
+            type:'chat',
+            data:{
+                message,
+                username
+                
+            }
+        }))
     })
+    
 
+}
+
+
+public deleteViewer (socket:WebSocket){
+    this.viewers = this.viewers.filter((data)=>data.socket!=socket)
 }
 
 }

@@ -81,8 +81,11 @@
     "apps/ws-backend": {
       "name": "ws-backend",
       "dependencies": {
+        "@repo/redis": "*",
         "@repo/zod": "*",
+        "@types/jsonwebtoken": "^9.0.10",
         "@types/ws": "^8.18.1",
+        "jsonwebtoken": "^9.0.3",
         "ws": "^8.21.0",
       },
       "devDependencies": {
@@ -123,6 +126,15 @@
         "globals": "^16.5.0",
         "typescript": "^5.9.2",
         "typescript-eslint": "^8.39.0",
+      },
+    },
+    "packages/redis": {
+      "name": "@repo/redis",
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
       },
     },
     "packages/tailwind-config": {
@@ -581,6 +593,8 @@
     "@repo/db": ["@repo/db@workspace:packages/db"],
 
     "@repo/eslint-config": ["@repo/eslint-config@workspace:packages/eslint-config"],
+
+    "@repo/redis": ["@repo/redis@workspace:packages/redis"],
 
     "@repo/tailwind-config": ["@repo/tailwind-config@workspace:packages/tailwind-config"],
 
