@@ -4,7 +4,7 @@ import { ErrorMiddleware } from './middleware/error.middleware';
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 const app = express();
-const port = 8080;
+const port = 3000;
 app.use(express.json());
 app.use(cors())
 

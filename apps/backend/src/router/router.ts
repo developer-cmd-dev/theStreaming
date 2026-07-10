@@ -10,9 +10,9 @@ import { searchUser } from "../controller/search.controller";
 const router = Router();
 router.get('/health',healthCheck);
 router.post('/signup',signUp);
-router.post('/login',login);
+router.get('/login',login);
 router.post('/refresh',refreshToken);
-router.post('/logout',logut)
+router.get('/logout',logut)
 
 // Dashboard routes
 router.get('/',liveStreams)

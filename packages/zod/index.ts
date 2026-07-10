@@ -30,3 +30,16 @@ export{
   UsernameSearchQuerySchema,
   type UsernameSearchQuery
 } from "./schema/usernameSearchQuery"
+
+export {
+type CreateRoom,
+type JoinRoom,
+type MessageData,
+type MessageType,
+type Chat
+} from "./types/websocket_types"
+
+export {
+CreateRoomSchema,
+JoinRoomSchema
+} from './schema/websocket_schema'
