@@ -25,3 +25,8 @@ export {
 export {
  type HttpResponse
 } from "./schema/http_response"
+
+export{
+  UsernameSearchQuerySchema,
+  type UsernameSearchQuery
+} from "./schema/usernameSearchQuery"

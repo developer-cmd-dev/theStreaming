@@ -4,6 +4,7 @@ import { login, logut, refreshToken, signUp } from "../controller/auth.controlle
 import { authMiddleware } from "../middleware/auth.middleware";
 import { createStream,connectMediaServer,endStream, startRecordingStream, deleteStream,updateStreamOnLive} from "../controller/streaming.controller";
 import { liveStreams } from "../controller/dashboard.controller";
+import { searchUser } from "../controller/search.controller";
 
 
 const router = Router();
@@ -15,6 +16,7 @@ router.post('/logout',logut)
 
 // Dashboard routes
 router.get('/',liveStreams)
+router.get('/search-user',searchUser)
 
 // Stream routes
 router.post('/create-stream',authMiddleware,createStream);
