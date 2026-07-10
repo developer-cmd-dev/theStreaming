@@ -63,7 +63,7 @@ export async function connectMediaServer(req: Request, res: Response) {
     }
 
     try {
-    
+
         if (req.userId && stream.userId !== req.userId) {
             throw new CustomError("Unauthorized access to this stream.", 403);
         }
@@ -108,17 +108,17 @@ export async function startRecordingStream(req: Request, res: Response) {
         if (recordedFileName) {
             const localDir = await convertRecordedInToHLS(recordedFileName, streamId);
             const result = await uploadFolder(localDir, streamId);
-            if(result){
-              await prisma.stream.update({
-                where:{
-                    id:streamId
-                },
-                data:{
-                    playBackKey:result,
-                    isLive:false
-                }
-                
-               })
+            if (result) {
+                await prisma.stream.update({
+                    where: {
+                        id: streamId
+                    },
+                    data: {
+                        playBackKey: result,
+                        isLive: false
+                    }
+
+                })
             }
         }
         HttpResponse.success(res, {}, 'Stream Recorded Successfully', 200)
@@ -134,33 +134,61 @@ export async function endStream(req: Request, res: Response) {
 
 }
 
-export async function deleteStream(req:Request,res:Response) {
-    
-    const {streamId} = req.body;
+export async function deleteStream(req: Request, res: Response) {
 
-    if(!streamId){
+    const { streamId } = req.body;
+
+    if (!streamId) {
         throw new CustomError("Stream ID is required", 400);
     }
 
 
     try {
         const result = await prisma.stream.delete({
-            where:{
-                id:streamId
+            where: {
+                id: streamId
             }
         })
 
-    const response = await  deleteStreamDataB2(streamId)
+        const response = await deleteStreamDataB2(streamId)
 
-    if(response){
-        HttpResponse.success(res,{},"Stream Deleted",204);
-    }
+        if (response) {
+            HttpResponse.success(res, {}, "Stream Deleted", 204);
+        }
 
     } catch (error) {
         console.log(error)
-        throw new CustomError("Bad request",404)
+        throw new CustomError("Bad request", 404)
     }
 
 
+
+}
+
+
+export async function updateStreamOnLive(req: Request, res: Response) {
+
+    const { streamId, title } = req.body;
+
+    if (!title) {
+        throw new CustomError("Title is required", 400);
+    }
+    try {
+
+         await prisma.stream.update({
+            where: {
+                id: streamId
+            },
+            data: {
+                title
+            }
+        })
+
+        HttpResponse.success(res,{},"Success",200);
+
+    } catch (error) {
+        console.log(error)
+        throw error;
+    }
 
 }

@@ -12,30 +12,25 @@ datasource db {
   provider = "postgresql"
 }
 
-
-
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  username  String   @unique
-  role      Role     @default(USER)
-
+  id          String     @id @default(uuid())
+  email       String     @unique
+  password    String
+  username    String     @unique
+  role        Role       @default(USER)
+  comments    Comments[]
   // subscriptions: Users who subscribe to this user
-  subscribers User[] @relation("UserSubscribers")
-  // follows: Users whom this user is following
-  follows     User[] @relation("UserFollows")
+  subscribers User[]     @relation("UserSubscribers")
+  // Reverse fields for self-relations
+  subscribedTo User[] @relation("UserSubscribers") 
 
-  // Streams (assumes streams owned by user)
   streams Stream[]
 
   refreshToken RefreshToken?
 
-  // Reverse fields for self-relations
-  subscribedTo User[] @relation("UserSubscribers")
-  followedBy   User[] @relation("UserFollows")
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 enum Role {
@@ -44,18 +39,22 @@ enum Role {
 }
 
 model Stream {
-  id          String   @id @default(uuid())
-  title       String?
-  description String?
-  isLive      Boolean
-  thumbnail   String?
-  playBackKey String?
+  id             String     @id @default(uuid())
+  title          String?
+  description    String?
+  isLive         Boolean
+  thumbnail      String?
+  playBackKey    String?
+  like           Int        @default(0)
+  dislike        Int        @default(0)
+  viewers        Int        @default(0)
   subscriberOnly Boolean
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  userId      String
-  chat        Chat?
-  user        User     @relation(fields: [userId], references: [id])
+  comments       Comments[]
+  userId         String
+  chat           Chat?
+  user           User       @relation(fields: [userId], references: [id])
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 }
 
 model RefreshToken {
@@ -86,4 +85,17 @@ model Message {
   updatedAt DateTime @updatedAt
   chatId    String   @unique
   chat      Chat     @relation(fields: [chatId], references: [id])
+}
+
+model Comments {
+  id        String   @id @default(uuid())
+  message   String
+  username  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  streamId String
+
+  user   User   @relation(fields: [username], references: [username])
+  stream Stream @relation(fields: [streamId], references: [id])
 }
