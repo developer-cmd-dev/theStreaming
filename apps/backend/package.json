@@ -4,9 +4,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "",
-    "start": "bun ./src/index.ts",
-    "dev": "bun run start"
+    "build": "bun build ./src/index.ts --outdir ./dist --target node --minify",
+    "start": "bun run build && bun ./dist/index.js",
+    "dev": "bun ./src/index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"

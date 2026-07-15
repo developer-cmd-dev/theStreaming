@@ -21,9 +21,6 @@ export async function deleteStreamDataB2(streamId: string): Promise<boolean> {
 
 
             const objects = listResponse.Contents.map(data => ({ Key: data.Key! })) ?? []
-
-
-            console.log(objects)
             if (objects.length > 0) {
                 await b2Client.send(
                     new DeleteObjectsCommand({

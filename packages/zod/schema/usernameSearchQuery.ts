@@ -2,7 +2,7 @@ import {z} from 'zod'
 
 export const UsernameSearchQuerySchema = z.object({
     query:z.string(),
-    limit:z.number()
+    limit:z.string()
 })
 
 

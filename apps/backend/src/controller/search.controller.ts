@@ -26,7 +26,7 @@ export async function searchUser(req: Request, res: Response) {
                     mode: "insensitive",
                 },
             },
-            take: data.limit,
+            take: Number(data.limit),
             select: {
                 id: true,
                 username: true,

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { healthCheck } from "../controller/healthcheck.controller";
-import { login, logut, refreshToken, signUp } from "../controller/auth.controller";
+import { login, logout, refreshToken, signUp } from "../controller/auth.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { createStream,connectMediaServer,endStream, startRecordingStream, deleteStream,updateStreamOnLive} from "../controller/streaming.controller";
 import { liveStreams } from "../controller/dashboard.controller";
@@ -10,9 +10,9 @@ import { searchUser } from "../controller/search.controller";
 const router = Router();
 router.get('/health',healthCheck);
 router.post('/signup',signUp);
-router.get('/login',login);
+router.post('/login',login);
 router.post('/refresh',refreshToken);
-router.get('/logout',logut)
+router.get('/logout',logout)
 
 // Dashboard routes
 router.get('/',liveStreams)

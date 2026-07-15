@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import { CustomError } from "../error/customError";
 import { prisma } from '@repo/db/prisma'
 import HttpResponse from "../utils/HttpResponse";
-import { loginUserScheam } from "../../../../packages/zod/schema/user";
+import { loginUserScheam, logOutUserSchema } from "../../../../packages/zod/schema/user";
 import jwt, { JsonWebTokenError } from "jsonwebtoken";
 
 
@@ -95,6 +95,8 @@ export async function login(req: Request, res: Response) {
         }
     });
 
+    
+
     if (!existingRefreshToken) {
         await prisma.refreshToken.create({
             data: {
@@ -127,17 +129,26 @@ export async function login(req: Request, res: Response) {
 }
 
 
-export async function logut(req:Request,res:Response) {
-    
-    const userId = req.body;
+export async function logout(req:Request,res:Response) {
+
+        
+    const {data:userId,error} = logOutUserSchema.safeParse(req.body);
+
+    if(error){
+        throw new CustomError("Invalid Input", 400);
+       }
+
+    if(!userId) 
 
     await prisma.refreshToken.delete({
         where:{
             userId
         }
     })
+    res.clearCookie('refresh_token')
 
-    HttpResponse.success(res,{});
+    HttpResponse.success(res,{},"Success");
+
 
 }
 

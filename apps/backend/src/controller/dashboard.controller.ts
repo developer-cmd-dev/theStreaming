@@ -1,7 +1,8 @@
 import { prisma } from "@repo/db/prisma";
-import type { Response } from "express";
+import HttpResponse from "../utils/HttpResponse";
+import { response, type Request, type Response } from "express";
 
-export async function liveStreams(res: Response) {
+export async function liveStreams(req:Request,res: Response) {
 
   try {
     const result = await prisma.user.findMany({
@@ -34,12 +35,13 @@ export async function liveStreams(res: Response) {
 
     })
 
-    console.log(result);
+    HttpResponse.success(res,result,"success",200)
 
     
 
   } catch (error) {
-    console.log(error)
+    console.log(error);
+    throw error
   }
 
 
