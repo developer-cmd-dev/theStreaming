@@ -9,24 +9,22 @@ export default function Page() {
 
   const recieverVideoRef = useRef<HTMLVideoElement | null>(null);
 
+  const peerConnection = useRef<RTCPeerConnection|null> (null);
+  const mediaStream = useRef<MediaStream|null>(null)
+
 
   async function goLive() {
 
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-
+      if(!stream) mediaStream.current=stream;
       const pc = new RTCPeerConnection();
-
-
-
-   
-
-
       stream.getTracks().forEach(tracks => {
         pc.addTrack(tracks, stream)
       })
 
+      
       const videoTransceiver = pc
         .getTransceivers()
         .find((t) => t.sender.track?.kind === "video");
@@ -55,12 +53,12 @@ export default function Page() {
         {
           sdp: offer.sdp,
           type: "offer",
-          streamId: "47bbb852-9543-468d-a437-17b7923b4814"
+          streamId: "c6c10609-0c33-4768-a589-0a9256a33daf"
         }
         ,
         {
           headers:{
-            Authorization:"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2U2ODY4ZS05OTlhLTRjNDctYjNkYy1hMmI1OTZiMmM2NTgiLCJ1c2VybmFtZSI6ImphbmVfZG9lIiwiaWF0IjoxNzg0MTE5MDE0LCJleHAiOjE3ODQxMjk4MTR9.oZX0daXG43dwbIyW8qkXj1y0Z_ukL2iWufAesZ81ZcA"
+            Authorization:"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2U2ODY4ZS05OTlhLTRjNDctYjNkYy1hMmI1OTZiMmM2NTgiLCJ1c2VybmFtZSI6ImphbmVfZG9lIiwiaWF0IjoxNzg0MTI5ODY4LCJleHAiOjE3ODQxNDA2Njh9.dW2poWzJq8BDDRyjoDb8muIjiXD1CzNcCCV7Vxv_TL8"
           }
         }
       );
@@ -81,7 +79,8 @@ export default function Page() {
         sdp: result.data.sdpAnswer
       })
 
-      const recordingResponse = await axios.get("http://localhost:8080/api/v1/record-streaming/47bbb852-9543-468d-a437-17b7923b4814",)
+      peerConnection.current=pc;
+      const recordingResponse = await axios.get("http://localhost:8080/api/v1/record-streaming/c6c10609-0c33-4768-a589-0a9256a33daf",)
       console.log(recordingResponse.data)
     } catch (error) {
       if (error instanceof AxiosError) {
@@ -138,6 +137,20 @@ export default function Page() {
   }
 
 
+  async function endStream() {
+    const pc = peerConnection.current;
+    console.log(pc)
+    if(pc){
+      axios.post("http://localhost:3000/api/v1/end-stream/c6c10609-0c33-4768-a589-0a9256a33daf",);
+      pc.close();
+      mediaStream.current?.getTracks().forEach((track)=>{
+        track.stop()
+      })
+
+
+    }
+  }
+
 
 
 
@@ -158,6 +171,11 @@ export default function Page() {
 
       <Button size="lg" onClick={joinLive}>
         join live
+      </Button>
+
+
+      <Button size="lg" onClick={endStream}>
+        end live
       </Button>
 
       <video

@@ -1,6 +1,6 @@
 import z from "zod";
 import type { CreateRoomSchema, JoinRoomSchema } from "../schema/websocket_schema";
-export type MessageType = "create-room"|"join-room"|"chat"
+export type MessageType = "create-room"|"join-room"|"message"
 
 export interface MessageData {
     type:MessageType

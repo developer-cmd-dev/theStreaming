@@ -5,12 +5,10 @@ import { prisma } from "@repo/db/prisma";
 import HttpResponse from "../utils/HttpResponse";
 import axios, { AxiosError } from 'axios';
 import { connectMediaServerSchema } from "../../../../packages/zod/schema/stream";
-import { startRecordingWithRetry } from '../rtsp-recording/rtsp-cleint'
 import { recordStreaming } from "../lib/ffmpeg_record_streaming";
 import { convertRecordedInToHLS } from "../lib/ffmpeg_convert_recording_hls";
 import { uploadFolder } from "../lib/upload_hls_b2";
-import { b2Client, BUCKET_NAME } from "../config/b2_client";
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+
 import { deleteStreamDataB2 } from "../lib/delete_hls_b2";
 
 export async function createStream(req: Request, res: Response) {
@@ -74,7 +72,7 @@ export async function connectMediaServer(req: Request, res: Response) {
             data.sdp,
             { headers: { "Content-Type": "application/sdp" } }
         );
-        console.log(whipResponse.headers.location)
+        
 
 
 
@@ -123,6 +121,7 @@ export async function startRecordingStream(req: Request, res: Response) {
                 })
             }
         }
+    
         HttpResponse.success(res, {}, 'Stream Recorded Successfully', 200)
     } catch (error) {
         if (error instanceof Error) {
@@ -135,13 +134,29 @@ export async function startRecordingStream(req: Request, res: Response) {
 export async function endStream(req: Request, res: Response) {
 
 try {
-  const response = await  axios.delete('http://localhost:8889/live/47bbb852-9543-468d-a437-17b7923b4814/whip/3c77892e-4640-46ac-9354-cd6a81b0f4e4')
 
-  console.log(response)
-  res.status(200).json(response)
+    const streamId = req.params.streamId?.toString();
+    if(!streamId){
+        throw new CustomError("Invalid Stream id", 400);
+    }
+
+   await prisma.stream.update({
+        where:{
+            id:streamId
+        },
+        data:{
+            isLive:false
+        }
+    })
+
+
+ 
+    HttpResponse.success(res,{},"success",200);
 } catch (error) {
-    console.log(error)
-
+    if(error instanceof AxiosError){
+        console.log(error.message,error.response)
+    }
+    throw new CustomError("Something went wrong",500);
 }
 
 

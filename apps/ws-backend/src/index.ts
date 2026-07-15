@@ -42,7 +42,7 @@ wss.on('connection', async (socket) => {
 
             if (data) {
 
-                const payload= jwt.verify(data?.token, JWT_SECRET!)
+                const payload= jwt.verify(data?.token, JWT_SECRET!);
 
                 const room = new Room(data.streamId, data.username, [], socket)
                 const streamer = new User(data.username, data.userId, data.token, socket, true);
@@ -90,10 +90,9 @@ wss.on('connection', async (socket) => {
 
             }
 
-        } else if (messageData.type === 'chat') {
+        } else if (messageData.type === 'message') {
             const data = messageData.data as Chat;
             const messagesArray:Chat[]=[]
-
             
             const room = rooms.get(data.streamId);
             room?.sendMessage(socket, data.message, data.userId, data.username)

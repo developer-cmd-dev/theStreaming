@@ -21,7 +21,7 @@ router.get('/search-user',searchUser)
 // Stream routes
 router.post('/create-stream',authMiddleware,createStream);
 router.post('/connect-media-server',authMiddleware,connectMediaServer);
-router.post('/end-stream',endStream)
+router.post('/end-stream/:streamId',authMiddleware,endStream)
 router.get('/record-streaming/:streamId',authMiddleware,startRecordingStream);
 router.delete('/delete-stream',authMiddleware,deleteStream);
 router.patch('/update-on-live',authMiddleware,updateStreamOnLive)

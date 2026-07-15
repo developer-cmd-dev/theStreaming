@@ -4,9 +4,10 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "buid": "bun build ./src/index.ts --outdir ./dist --target node --minify",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node --minify",
     "start": "bun run build && bun ./dist/index.js",
-    "dev": "bun ./src/index.ts"
+    "dev": "bun ./src/index.ts",
+    "join-room": "bun ./scripts/join-room.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
