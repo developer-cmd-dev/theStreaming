@@ -48,7 +48,6 @@ export async function createStream(req: Request, res: Response) {
 
 export async function connectMediaServer(req: Request, res: Response) {
     const { data, error } = connectMediaServerSchema.safeParse(req.body);
-
     if (error) {
         const errorMessage = JSON.parse(error.message)[0].message
         throw new CustomError(errorMessage, 422);
@@ -58,7 +57,8 @@ export async function connectMediaServer(req: Request, res: Response) {
         where: { id: data.streamId },
         select: { id: true, userId: true }
     });
-    if (!stream) {
+
+    if (!stream) {  
         throw new CustomError("Stream not found.", 404);
     }
 
@@ -74,6 +74,7 @@ export async function connectMediaServer(req: Request, res: Response) {
             data.sdp,
             { headers: { "Content-Type": "application/sdp" } }
         );
+        console.log(whipResponse.headers.location)
 
 
 
@@ -84,6 +85,7 @@ export async function connectMediaServer(req: Request, res: Response) {
             const message = error.response?.data || 'Error communicating with media server';
             throw new CustomError(message, status)
         } else {
+            console.log(error)
             throw new CustomError("An unexpected error occurred while connecting to the media server.", 500);
 
         }
@@ -131,6 +133,18 @@ export async function startRecordingStream(req: Request, res: Response) {
 }
 
 export async function endStream(req: Request, res: Response) {
+
+try {
+  const response = await  axios.delete('http://localhost:8889/live/47bbb852-9543-468d-a437-17b7923b4814/whip/3c77892e-4640-46ac-9354-cd6a81b0f4e4')
+
+  console.log(response)
+  res.status(200).json(response)
+} catch (error) {
+    console.log(error)
+
+}
+
+
 
 }
 

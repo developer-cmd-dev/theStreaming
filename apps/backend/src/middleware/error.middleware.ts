@@ -3,7 +3,7 @@ import type{ ErrorRequestHandler } from 'express';
 import { CustomError } from '../error/customError';
 export const ErrorMiddleware: ErrorRequestHandler = (err, req, res, next) => {
   const statusCode = err instanceof CustomError ? err.statusCode : 500;
-  const message =  'Internal Server Error';
+  const message =   err? err.message:'Internal Server Error';
 
   if (statusCode === 500) {
     console.error(err);

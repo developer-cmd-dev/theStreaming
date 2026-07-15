@@ -20,13 +20,7 @@ export default function Page() {
 
 
 
-      pc.oniceconnectionstatechange = () => {
-        console.log("ICE:", pc.iceConnectionState);
-      };
-
-      pc.onconnectionstatechange = () => {
-        console.log("Connection:", pc.connectionState);
-      };
+   
 
 
       stream.getTracks().forEach(tracks => {
@@ -57,29 +51,37 @@ export default function Page() {
 
       pc.setLocalDescription(offer)
 
-      const response = await axios.post("http://localhost:8080/api/v1/connect-media-server",
+      const response = await axios.post("http://localhost:3000/api/v1/connect-media-server",
         {
           sdp: offer.sdp,
           type: "offer",
-          streamId: "3b560b13-1db5-4b79-adab-489381ed9f90"
+          streamId: "47bbb852-9543-468d-a437-17b7923b4814"
         }
         ,
         {
-      
+          headers:{
+            Authorization:"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2U2ODY4ZS05OTlhLTRjNDctYjNkYy1hMmI1OTZiMmM2NTgiLCJ1c2VybmFtZSI6ImphbmVfZG9lIiwiaWF0IjoxNzg0MTE5MDE0LCJleHAiOjE3ODQxMjk4MTR9.oZX0daXG43dwbIyW8qkXj1y0Z_ukL2iWufAesZ81ZcA"
+          }
         }
       );
 
       const result = response.data as HttpResponse
 
 
+      pc.oniceconnectionstatechange = () => {
+        console.log("ICE:", pc.iceConnectionState);
+      };
 
+      pc.onconnectionstatechange = () => {
+        console.log("Connection:", pc.connectionState);
+      };
 
       await pc.setRemoteDescription({
         type: 'answer',
         sdp: result.data.sdpAnswer
       })
 
-      const recordingResponse = await axios.get("http://localhost:8080/api/v1/record-streaming/3b560b13-1db5-4b79-adab-489381ed9f90",)
+      const recordingResponse = await axios.get("http://localhost:8080/api/v1/record-streaming/47bbb852-9543-468d-a437-17b7923b4814",)
       console.log(recordingResponse.data)
     } catch (error) {
       if (error instanceof AxiosError) {
