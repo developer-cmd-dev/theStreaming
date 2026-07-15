@@ -25,6 +25,7 @@ router.post('/end-stream/:streamId',authMiddleware,endStream)
 router.get('/record-streaming/:streamId',authMiddleware,startRecordingStream);
 router.delete('/delete-stream',authMiddleware,deleteStream);
 router.patch('/update-on-live',authMiddleware,updateStreamOnLive)
+router.post('/internal/obs/start-stream')
 
 
 

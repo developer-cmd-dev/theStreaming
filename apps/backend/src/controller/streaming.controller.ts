@@ -221,3 +221,10 @@ export async function updateStreamOnLive(req: Request, res: Response) {
     }
 
 }
+
+
+export async function obsStream(req:Request,res:Response) {
+    const query = req.query
+
+    console.log(query)
+}
