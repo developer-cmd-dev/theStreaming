@@ -234,8 +234,6 @@ export async function obsStream(req: Request, res: Response) {
     const endpoint = "http://127.0.0.1:9997/v3/paths/list";
     const result = await axiosHandler(endpoint, null, null, "GET");
 
-
-
     if (!result || (Array.isArray(result.items) && result.items.length == 0)) {
         throw new CustomError("Obs not connected with Media server", 404)
     }

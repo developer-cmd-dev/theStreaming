@@ -14,7 +14,6 @@ export function getContentType(filename: string): string {
 
 export async function uploadFile(localPath: string, remoteKey: string,filename:string): Promise<PutObjectCommandOutput> {
     try {
-        console.log(localPath)
         const fileBuffer = fs.readFileSync(localPath);
         const result = await b2Client.send(
             new PutObjectCommand({
