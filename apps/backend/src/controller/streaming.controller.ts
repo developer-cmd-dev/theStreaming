@@ -5,7 +5,7 @@ import { prisma } from "@repo/db/prisma";
 import HttpResponse from "../utils/HttpResponse";
 import axios, { AxiosError } from 'axios';
 import { connectMediaServerSchema } from "../../../../packages/zod/schema/stream";
-import { recordStreaming, sseResponse } from "../lib/ffmpeg_record_streaming";
+import { recordStreaming, sseResponse } from "../lib/ffmpeg_record_streaming.refactored";
 import { convertRecordedInToHLS } from "../lib/ffmpeg_convert_recording_hls";
 import { uploadFolder } from "../lib/upload_hls_b2";
 
