@@ -9,8 +9,8 @@ export async function convertRecordedInToHLS(recordedFileName: string, streamId:
 
     for (let tries = 0; tries <= maxTries; tries++) {
 
-
-        const recordedFileDirectory = `/home/devslinux/Documents/Workdir/FullStackProjects/theStreaming/apps/recordings/${streamId}_video`
+        const currentDirectory = process.cwd().replace("/backend","/recordings")
+        const recordedFileDirectory = `${currentDirectory}/${streamId}_video`
 
         if (!fs.existsSync(recordedFileDirectory)) throw new Error("Folder not found");
 

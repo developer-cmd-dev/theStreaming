@@ -5,7 +5,7 @@ import { prisma } from "@repo/db/prisma";
 import HttpResponse from "../utils/HttpResponse";
 import axios, { AxiosError } from 'axios';
 import { connectMediaServerSchema } from "../../../../packages/zod/schema/stream";
-import { recordStreaming } from "../lib/ffmpeg_record_streaming";
+import { recordStreaming, sseResponse } from "../lib/ffmpeg_record_streaming";
 import { convertRecordedInToHLS } from "../lib/ffmpeg_convert_recording_hls";
 import { uploadFolder } from "../lib/upload_hls_b2";
 
@@ -105,12 +105,25 @@ export async function startRecordingStream(req: Request, res: Response) {
             throw new CustomError("Data is in array", 404)
         }
 
- 
-        const recordedFileName = await recordStreaming(streamId,res);
+
+
+
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+
+
+        const recordedFileName = await recordStreaming(streamId, res);
+        console.log(recordedFileName)
+        if(!recordedFileName){
+            res.write(`data:${sseResponse("ERROR:FAILED TO RECORD STREAM",400)}\n\n`);
+            res.end();
+            return;
+        }
 
         if (recordedFileName) {
             const localDir = await convertRecordedInToHLS(recordedFileName, streamId);
-            const result = await uploadFolder(localDir, streamId);
+            const result = await uploadFolder(localDir, streamId, res);
             if (result) {
                 await prisma.stream.update({
                     where: {
@@ -122,10 +135,15 @@ export async function startRecordingStream(req: Request, res: Response) {
                     }
 
                 })
+                res.write(sseResponse("UPLOAD SUCCESSFULLY", 200));
+                res.end();
             }
         }
 
-        HttpResponse.success(res, {}, 'Stream Recorded Successfully', 200)
+        req.on('close', () => {
+            res.end()
+        })
+
     } catch (error) {
         if (error instanceof Error) {
             throw new CustomError(error.message, 400)
