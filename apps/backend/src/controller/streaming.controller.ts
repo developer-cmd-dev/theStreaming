@@ -10,6 +10,7 @@ import { convertRecordedInToHLS } from "../lib/ffmpeg_convert_recording_hls";
 import { uploadFolder } from "../lib/upload_hls_b2";
 
 import { deleteStreamDataB2 } from "../lib/delete_hls_b2";
+import { axiosHandler } from "../lib/axios";
 
 export async function createStream(req: Request, res: Response) {
 
@@ -56,7 +57,7 @@ export async function connectMediaServer(req: Request, res: Response) {
         select: { id: true, userId: true }
     });
 
-    if (!stream) {  
+    if (!stream) {
         throw new CustomError("Stream not found.", 404);
     }
 
@@ -72,7 +73,7 @@ export async function connectMediaServer(req: Request, res: Response) {
             data.sdp,
             { headers: { "Content-Type": "application/sdp" } }
         );
-        
+
 
 
 
@@ -104,7 +105,9 @@ export async function startRecordingStream(req: Request, res: Response) {
             throw new CustomError("Data is in array", 404)
         }
 
-        const recordedFileName = await recordStreaming(streamId);
+ 
+        const recordedFileName = await recordStreaming(streamId,res);
+
         if (recordedFileName) {
             const localDir = await convertRecordedInToHLS(recordedFileName, streamId);
             const result = await uploadFolder(localDir, streamId);
@@ -121,7 +124,7 @@ export async function startRecordingStream(req: Request, res: Response) {
                 })
             }
         }
-    
+
         HttpResponse.success(res, {}, 'Stream Recorded Successfully', 200)
     } catch (error) {
         if (error instanceof Error) {
@@ -133,31 +136,31 @@ export async function startRecordingStream(req: Request, res: Response) {
 
 export async function endStream(req: Request, res: Response) {
 
-try {
+    try {
 
-    const streamId = req.params.streamId?.toString();
-    if(!streamId){
-        throw new CustomError("Invalid Stream id", 400);
-    }
-
-   await prisma.stream.update({
-        where:{
-            id:streamId
-        },
-        data:{
-            isLive:false
+        const streamId = req.params.streamId?.toString();
+        if (!streamId) {
+            throw new CustomError("Invalid Stream id", 400);
         }
-    })
+
+        await prisma.stream.update({
+            where: {
+                id: streamId
+            },
+            data: {
+                isLive: false
+            }
+        })
 
 
- 
-    HttpResponse.success(res,{},"success",200);
-} catch (error) {
-    if(error instanceof AxiosError){
-        console.log(error.message,error.response)
+
+        HttpResponse.success(res, {}, "success", 200);
+    } catch (error) {
+        if (error instanceof AxiosError) {
+            console.log(error.message, error.response)
+        }
+        throw new CustomError("Something went wrong", 500);
     }
-    throw new CustomError("Something went wrong",500);
-}
 
 
 
@@ -204,7 +207,7 @@ export async function updateStreamOnLive(req: Request, res: Response) {
     }
     try {
 
-         await prisma.stream.update({
+        await prisma.stream.update({
             where: {
                 id: streamId
             },
@@ -213,7 +216,7 @@ export async function updateStreamOnLive(req: Request, res: Response) {
             }
         })
 
-        HttpResponse.success(res,{},"Success",200);
+        HttpResponse.success(res, {}, "Success", 200);
 
     } catch (error) {
         console.log(error)
@@ -223,8 +226,28 @@ export async function updateStreamOnLive(req: Request, res: Response) {
 }
 
 
-export async function obsStream(req:Request,res:Response) {
-    const query = req.query
+export async function obsStream(req: Request, res: Response) {
+    const streamId = req.query.streamId?.toString()
 
-    console.log(query)
+    if (!streamId) throw new CustomError("Invalid Query", 404);
+
+    const endpoint = "http://127.0.0.1:9997/v3/paths/list";
+    const result = await axiosHandler(endpoint, null, null, "GET");
+
+
+
+    if (!result || (Array.isArray(result.items) && result.items.length == 0)) {
+        throw new CustomError("Obs not connected with Media server", 404)
+    }
+
+    const verifyStream = result.items.filter((data: any) => data.name.replace("live/", "") === streamId);
+
+    if (!verifyStream[0].ready) {
+        throw new CustomError("Stream is not ready", 404);
+    }
+
+
+
+    HttpResponse.success(res, {}, "Obs stream is live now", 200);
+
 }

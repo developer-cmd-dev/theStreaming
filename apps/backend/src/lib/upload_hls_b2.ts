@@ -14,6 +14,7 @@ export function getContentType(filename: string): string {
 
 export async function uploadFile(localPath: string, remoteKey: string,filename:string): Promise<PutObjectCommandOutput> {
     try {
+        console.log(localPath)
         const fileBuffer = fs.readFileSync(localPath);
         const result = await b2Client.send(
             new PutObjectCommand({
@@ -51,6 +52,7 @@ export async function uploadFolder(localDir: string, remotePrefix: string): Prom
             const result = await uploadFile(localPath, `${remotePrefix}/${file}`,file);
             if(file==='output.m3u8' && result.$metadata.httpStatusCode===200) isM3U8FileUploaded=true;
             promise.push(result)
+
         }
 
          await Promise.all(promise)

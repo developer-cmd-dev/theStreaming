@@ -1,5 +1,6 @@
+import type { Response } from "express";
 import { mkdirSync, existsSync } from "fs";
-export async function recordStreaming(streamId:string):Promise<string> {
+export async function recordStreaming(streamId:string,res:Response):Promise<string> {
     const maxTries=10;
 
     const recordingsDir = `/home/devslinux/Documents/Workdir/FullStackProjects/theStreaming/apps/recordings/${streamId}_video`;
@@ -23,7 +24,9 @@ export async function recordStreaming(streamId:string):Promise<string> {
 
     for(let tries=1;tries<=maxTries;tries++){
 
-     const proc= Bun.spawn(recordLiveStreamingFFmpegCmd,{stderr:"inherit",stdout:"inherit"});
+     const proc= Bun.spawn(recordLiveStreamingFFmpegCmd,{stdout:"inherit",stdin:"pipe"});
+
+
 
      if(await proc.exited===0){
         console.log('Stream has been recorded with original resoultion in .mkv file formate');

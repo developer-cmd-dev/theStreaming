@@ -2,7 +2,7 @@ import { Router } from "express";
 import { healthCheck } from "../controller/healthcheck.controller";
 import { login, logout, refreshToken, signUp } from "../controller/auth.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
-import { createStream,connectMediaServer,endStream, startRecordingStream, deleteStream,updateStreamOnLive} from "../controller/streaming.controller";
+import { createStream,connectMediaServer,endStream, startRecordingStream, deleteStream,updateStreamOnLive, obsStream} from "../controller/streaming.controller";
 import { liveStreams } from "../controller/dashboard.controller";
 import { searchUser } from "../controller/search.controller";
 
@@ -22,10 +22,10 @@ router.get('/search-user',searchUser)
 router.post('/create-stream',authMiddleware,createStream);
 router.post('/connect-media-server',authMiddleware,connectMediaServer);
 router.post('/end-stream/:streamId',authMiddleware,endStream)
-router.get('/record-streaming/:streamId',authMiddleware,startRecordingStream);
+router.get('/record-streaming/:streamId',startRecordingStream);
 router.delete('/delete-stream',authMiddleware,deleteStream);
 router.patch('/update-on-live',authMiddleware,updateStreamOnLive)
-router.post('/internal/obs/start-stream')
+router.get('/internal/get-obs-stream',obsStream)
 
 
 

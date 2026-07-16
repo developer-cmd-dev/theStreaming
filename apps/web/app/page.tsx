@@ -108,7 +108,7 @@ export default function Page() {
 
 
       const response = await axios.post(
-        "http://localhost:8889/live/94e194e4-6da0-4ee8-a289-45ba98d697ca/whep",
+        "http://localhost:8889/live/c6c10609-0c33-4768-a589-0a9256a33daf/whep",
         offer.sdp,
         {
           headers: {
