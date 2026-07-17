@@ -4,7 +4,6 @@ import { b2Client, BUCKET_NAME } from '../config/b2_client';
 import { PutObjectCommand, type PutObjectCommandOutput } from '@aws-sdk/client-s3';
 import path from 'path';
 import type { Response } from 'express';
-import { sseResponse } from './ffmpeg_record_streaming';
 
 export function getContentType(filename: string): string {
     if (filename.endsWith(".m3u8")) return "application/vnd.apple.mpegurl";
@@ -14,7 +13,7 @@ export function getContentType(filename: string): string {
 
 
 
-export async function uploadFile(localPath: string, remoteKey: string,filename:string,res:Response,totalFile:number): Promise<PutObjectCommandOutput> {
+export async function uploadFile(localPath: string, remoteKey: string, filename: string, res: Response, totalFile: number): Promise<PutObjectCommandOutput> {
     try {
         const fileBuffer = fs.readFileSync(localPath);
         const result = await b2Client.send(
@@ -24,14 +23,12 @@ export async function uploadFile(localPath: string, remoteKey: string,filename:s
                 Body: fileBuffer,
                 ContentType: getContentType(localPath),
                 ContentLength: fileBuffer.length,
-                Metadata:{
-                    "filename":filename
+                Metadata: {
+                    "filename": filename
                 }
 
             })
         );
-        
-        res.write(`data:${sseResponse("UPLOADING STREAM",200)}\n\n`)
 
         console.log(`Uploaded: ${remoteKey}`);
         return result
@@ -41,36 +38,34 @@ export async function uploadFile(localPath: string, remoteKey: string,filename:s
     }
 }
 
-export async function uploadFolder(localDir: string, remotePrefix: string,res:Response): Promise<string|false> {
+export async function uploadFolder(localDir: string, remotePrefix: string, res: Response): Promise<string | false> {
 
     try {
         const files = fs.readdirSync(localDir);
 
         const promise: PutObjectCommandOutput[] = []
         const totalFile = files.length;
-        let isM3U8FileUploaded=false;
+        let isM3U8FileUploaded = false;
 
         for (const file of files) {
             const localPath = path.join(localDir, file);
-            const result = await uploadFile(localPath, `${remotePrefix}/${file}`,file,res,totalFile);
-            if(file==='output.m3u8' && result.$metadata.httpStatusCode===200) isM3U8FileUploaded=true;
+            const result = await uploadFile(localPath, `${remotePrefix}/${file}`, file, res, totalFile);
+            if (file === 'output.m3u8' && result.$metadata.httpStatusCode === 200) isM3U8FileUploaded = true;
             promise.push(result)
 
         }
 
-         await Promise.all(promise)
+        await Promise.all(promise)
 
-        const extractFolderPath = localDir.replace("/hls_video","");
-        fs.rmdirSync(extractFolderPath,{recursive:true})
-        if(isM3U8FileUploaded){
+        const extractFolderPath = localDir.replace("/hls_video", "");
+        fs.rmdirSync(extractFolderPath, { recursive: true })
+        if (isM3U8FileUploaded) {
             return `${remotePrefix}/output.m3u8`
-        }else{
+        } else {
             return false
         }
     } catch (error) {
         console.log(error);
         throw error;
     }
-
-
 }

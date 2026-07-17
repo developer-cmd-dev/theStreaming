@@ -93,7 +93,7 @@ export async function connectMediaServer(req: Request, res: Response) {
 }
 
 export async function startRecordingStream(req: Request, res: Response) {
-    try {
+
         const streamId = req.params.streamId
 
 
@@ -105,16 +105,7 @@ export async function startRecordingStream(req: Request, res: Response) {
             throw new CustomError("Data is in array", 404)
         }
 
-
-
-
-        res.setHeader('Content-Type', 'text/event-stream');
-        res.setHeader('Cache-Control', 'no-cache');
-        res.setHeader('Connection', 'keep-alive');
-
-
         const recordedFileName = await recordStreaming(streamId, res);
-        console.log(recordedFileName)
         if(!recordedFileName){
             res.write(`data:${sseResponse("ERROR:FAILED TO RECORD STREAM",400)}\n\n`);
             res.end();
@@ -135,21 +126,9 @@ export async function startRecordingStream(req: Request, res: Response) {
                     }
 
                 })
-                res.write(sseResponse("UPLOAD SUCCESSFULLY", 200));
-                res.end();
             }
         }
-
-        req.on('close', () => {
-            res.end()
-        })
-
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new CustomError(error.message, 400)
-        }
-    }
-
+        HttpResponse.success(res,null)
 }
 
 export async function endStream(req: Request, res: Response) {
@@ -172,7 +151,7 @@ export async function endStream(req: Request, res: Response) {
 
 
 
-        HttpResponse.success(res, {}, "success", 200);
+        HttpResponse.success(res);
     } catch (error) {
         if (error instanceof AxiosError) {
             console.log(error.message, error.response)
@@ -203,7 +182,7 @@ export async function deleteStream(req: Request, res: Response) {
         const response = await deleteStreamDataB2(streamId)
 
         if (response) {
-            HttpResponse.success(res, {}, "Stream Deleted", 204);
+            HttpResponse.success(res,null, "Stream Deleted");
         }
 
     } catch (error) {
@@ -234,7 +213,7 @@ export async function updateStreamOnLive(req: Request, res: Response) {
             }
         })
 
-        HttpResponse.success(res, {}, "Success", 200);
+        HttpResponse.success(res);
 
     } catch (error) {
         console.log(error)

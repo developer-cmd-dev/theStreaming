@@ -1,7 +1,7 @@
 import type { Response } from "express";
 
 class HttpResponse {
-    static success(res:Response, data = {}, message = 'Success', status = 200) {
+    static success(res:Response, data:object|null = null, message = 'Success', status = 200) {
         return res.status(status).json({
             success: true,
             status,

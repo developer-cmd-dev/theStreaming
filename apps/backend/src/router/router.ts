@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Response } from "express";
 import { healthCheck } from "../controller/healthcheck.controller";
 import { login, logout, refreshToken, signUp } from "../controller/auth.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
