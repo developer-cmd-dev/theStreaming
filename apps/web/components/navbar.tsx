@@ -1,13 +1,16 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Input } from './ui/input'
 import { Bell, Mail } from 'lucide-react'
+import { Button } from './ui/button'
 
 function Navbar() {
+
+    const [openModal, setOpenModal] = useState<boolean>(false)
     return (
         <div className='w-full flex justify-between h-20 text-white'>
 
             {/* logo */}
-            <div className='w-50 lg:w-80  flex items-center justify-center font-logo text-shadow-lg text-shadow-red-700 text-lg md:xl lg:text-2xl font-bold text-white'>
+            <div className='w-30 sm:w-50 lg:w-80  flex items-center justify-center font-logo text-shadow-lg text-shadow-red-700 text-lg md:xl lg:text-2xl font-bold text-white'>
                 <h1 className=''>BoTLY</h1>
             </div>
 
@@ -31,32 +34,44 @@ function Navbar() {
             </div>
 
             {/* avatar */}
-            <div className=' w-fit flex items-center justify-self-center gap-8 text-sm text-white/60 mr-7 lg:mr-0'>
+            <div className=' w-fit lg:w-150 flex items-center justify-self-center gap-8 text-sm text-white/60 mr-4 lg:mr-0'>
 
-                <div className='lg:flex gap-8 hidden'>
-                <span>
-                    <Bell size={21} strokeWidth={2} />
-                </span>
-                <span>
-                    <Mail size={21} strokeWidth={2} />
-                </span>
+                <div className='lg:flex gap-6 hidden '>
+                    <span>
+                        <Bell size={21} strokeWidth={2} />
+                    </span>
+                    <span>
+                        <Mail size={21} strokeWidth={2} />
+                    </span>
                 </div>
 
-                <div className=' w-full h-15 flex items-center gap-5 '>
+                <div onClick={() => setOpenModal(!openModal)} className=' relative w-full h-full flex items-center gap-5 hover:bg-white/10 cursor-pointer p-2 '>
                     <span
-                        className=' h-full w-15 rounded-full bg-cover bg-center '
+                        className=' h-10 w-10 md:h-13 md:w-13 lg:h-15 lg:w-15 rounded-full bg-cover bg-center '
                         style={{
                             backgroundImage: "url('/androgynous-avatar-non-binary-queer-person.jpg')"
                         }}
                     ></span>
 
-                    <span className='hidden w-fit text-lg h-full lg:flex gap-2 flex-col items-start '>
+                    <span className='hidden w-fit text-lg h-15 lg:flex gap-2 flex-col items-start '>
                         <h1 className='text-white/70'>Dev Mandal</h1>
                         <p className='text-sm text-white/40'>devkmandal0@gmail.com</p>
                     </span>
 
-
+                 
                 </div>
+                {
+                        openModal && (
+                            <div className='bg-accent-foreground text-accent-foreground w-72 h-90 absolute top-22 right-2 rounded-md flex flex-col items-center p-4 '>
+                               <div className='w-full flex justify-center pb-4  border-b border-white/10  h-fit'>
+                               <Button className='bg-white/20 hover:bg-accent hover:text-black' type='button' >
+                                    View your channel
+                                </Button>
+                               </div>
+                            </div>
+                        )
+                    }
+
 
 
             </div>
