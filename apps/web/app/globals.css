@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Geomini:wght@200..800&family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geomini:wght@200..800&family=Outfit:wght@100..900&family=Press+Start+2P&display=swap');
 @import "tailwindcss";
 @import "@repo/tailwind-config";
 @import "tw-animate-css";
@@ -137,10 +138,10 @@
   }
   body {
     @apply bg-transparent text-foreground;
-    font-family: "Geomini", sans-serif;
+    font-family: "Outfit", sans-serif;
 
   }
   html {
-    font-family: "Geomini", sans-serif;
+    font-family: "Outfit", sans-serif;
   }
 }

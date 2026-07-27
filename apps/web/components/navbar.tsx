@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import { Input } from './ui/input'
-import { Bell, Mail } from 'lucide-react'
+import { Bell, CircleStar, Mail, Settings, SquareChartGantt } from 'lucide-react'
 import { Button } from './ui/button'
+import { Gear, ChartSquare, Stars2,Logout6, Trophy } from 'reicon-react';
+
 
 function Navbar() {
 
@@ -58,19 +60,54 @@ function Navbar() {
                         <p className='text-sm text-white/40'>devkmandal0@gmail.com</p>
                     </span>
 
-                 
+
                 </div>
                 {
-                        openModal && (
-                            <div className='bg-accent-foreground text-accent-foreground w-72 h-90 absolute top-22 right-2 rounded-md flex flex-col items-center p-4 '>
-                               <div className='w-full flex justify-center pb-4  border-b border-white/10  h-fit'>
-                               <Button className='bg-white/20 hover:bg-accent hover:text-black' type='button' >
+                    openModal && (
+                        <div className='bg-accent-foreground text-accent-foreground w-72 h-85 absolute top-22 right-2 rounded-md flex flex-col items-center p-4 '>
+                            <div className='w-full flex justify-center pb-4  border-b border-white/20  h-fit'>
+                                <Button className='bg-white/20 hover:bg-accent hover:text-black' type='button' >
                                     View your channel
                                 </Button>
-                               </div>
                             </div>
-                        )
-                    }
+
+                            <div className='  w-full h-full flex flex-col items-start gap-5 text-white border-b border-white/20  py-3 '>
+                                {
+                                    modalMenu.map((items) => (
+                                        <div key={items.name} className=' w-full flex items-center text-lg gap-5  font-light'>
+                                            <span>
+                                                {items.icon}
+                                            </span>
+                                            <p>
+                                                {items.name}
+                                            </p>
+                                        </div>
+                                    ))
+                                }
+                            </div>
+
+                            <div className='  w-full h-full flex flex-col items-start gap-5 text-white border-b border-white/20  py-3 '>
+                            <div className=' w-full flex items-center text-lg gap-5  font-light'>
+                                    <span>
+                                    <Gear size={28} weight='Filled' />
+                                    </span>
+                                    <p>
+                                        Settings
+                                    </p>
+                                </div>
+                                <div className=' w-full flex items-center text-lg gap-5  font-light'>
+                                    <span>
+                                    <Logout6 size={28} weight='Filled' />
+                                    </span>
+                                    <p>
+                                        logout
+                                    </p>
+                                </div>
+                              
+                            </div>
+                        </div>
+                    )
+                }
 
 
 
@@ -80,3 +117,21 @@ function Navbar() {
 }
 
 export default Navbar
+
+const modalMenu: { name: string, icon: React.ReactNode }[] = [
+    {
+        name: 'Subscription',
+        icon: <Stars2 size={28} weight='Filled' />
+    },
+
+    {
+        name: 'Creator Dashboard',
+        icon: <ChartSquare size={28} weight='Filled' />
+
+    },
+    {
+        name: 'Rewards',
+        icon: <Trophy size={28} weight="Filled" />
+
+    }
+]
