@@ -107,8 +107,10 @@ app.post('/webhook', async (req, res) => {
         } else {
 
 
+            Bot.sendChatAction(payload.message.chat.id,"typing")
             const response = await genAi(payload.message?.text);
             if(response){
+                
                 Bot.sendMessages({chat_id:payload.message.chat.id??0,text:response.toString()})
                 res.sendStatus(200)
                 return

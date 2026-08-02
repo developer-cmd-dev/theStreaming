@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI} from "@google/genai";
 
 const GOOGLE_GEN_AI_API_KEY=process.env.GEMINI_API_KEY;
 
@@ -8,6 +8,7 @@ const ai = new GoogleGenAI({
 
 export async function genAi(content?:string):Promise<string|boolean> {
    if(!content) return false
+
 
    const interaction = await ai.models.generateContent({
     model: "gemini-3.6-flash",
