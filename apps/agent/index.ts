@@ -18,6 +18,7 @@ app.get("/", (req: Request, res: Response) => {
 app.post('/webhook', async (req, res) => {
 
     const payload: TelegramUpdate = req.body;
+
     try {
 
         if (!payload) {
@@ -25,9 +26,23 @@ app.post('/webhook', async (req, res) => {
             return
         }
 
-        if (!payload.message?.chat.username|| !payload.message?.text) {
+        const username = payload.message?.chat.username;
+        const chatId = payload.message?.chat.id;
+        const message = payload.message?.text
+
+
+
+        if (!username || !chatId || !message) {
             res.sendStatus(200);
             return
+        }
+
+
+        if (payload.message?.text === '/logout') {
+            const response = await Bot.login(chatId, username)
+            if (response) {
+                res.sendStatus(200)
+            }
         }
 
 
@@ -36,25 +51,25 @@ app.post('/webhook', async (req, res) => {
 
         if (payload.message?.reply_to_message) {
             const email = payload.message.text;
-            
-            const {data:user} =  publicUserSchema.safeParse(await prisma.user.findFirst({
+
+            const { data: user } = publicUserSchema.safeParse(await prisma.user.findFirst({
                 where: {
                     email
                 }
             }))
 
 
-            
+
 
             if (user) {
                 const newBotUser = await prisma.aI_Agent_Bot.create({
                     data: {
-                        telegramUsername: payload.message?.chat.username,
+                        telegramUsername: username,
                         userId: user?.id
                     }
                 })
 
-                await redisClient.sadd('users', payload.message.chat.username);
+                await redisClient.sadd('users', username);
                 await Bot.sendMessages({ chat_id: payload.message.chat.id, text: "You are authorized continue to chat." })
                 res.sendStatus(200);
                 return;
@@ -68,14 +83,14 @@ app.post('/webhook', async (req, res) => {
         }
 
 
-        const checkUserInCache = await redisClient.sismember("users",payload.message?.chat?.username);
+        const checkUserInCache = await redisClient.sismember("users", username);
 
 
         if (!checkUserInCache) {
 
             const findInDB = await prisma.aI_Agent_Bot.findFirst({
                 where: {
-                    telegramUsername: payload.message?.chat.username
+                    telegramUsername: username
                 }
             })
 
@@ -98,8 +113,8 @@ app.post('/webhook', async (req, res) => {
                 res.sendStatus(200);
                 return;
             } else {
-                await redisClient.sadd('users', payload.message.chat.username);
-                await Bot.sendMessages({ chat_id: payload.message?.chat.id ?? 0, text: "You are authorized continue to chat." })
+                await redisClient.sadd('users', username);
+                await Bot.sendMessages({ chat_id: chatId, text: "You are authorized continue to chat." })
                 res.sendStatus(200);
                 return;
             }
@@ -107,11 +122,11 @@ app.post('/webhook', async (req, res) => {
         } else {
 
 
-            Bot.sendChatAction(payload.message.chat.id,"typing")
-            const response = await genAi(payload.message?.text);
-            if(response){
-                
-                Bot.sendMessages({chat_id:payload.message.chat.id??0,text:response.toString()})
+            Bot.sendChatAction(chatId, "typing")
+            const response = await genAi(message);
+            if (response) {
+
+                Bot.sendMessages({ chat_id: chatId, text: response.toString() })
                 res.sendStatus(200)
                 return
             }
