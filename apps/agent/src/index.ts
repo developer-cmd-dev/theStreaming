@@ -3,7 +3,7 @@ import express, { type Request, type Response } from 'express';
 import { genAi } from './genAi'
 import redisClient from '@repo/redis/redisClient';
 import Bot from './telegramBot';
-import { prisma } from '../../packages/db';
+import { prisma } from '../../../packages/db';
 import { redis } from 'bun';
 
 const app = express();
@@ -42,6 +42,7 @@ app.post('/webhook', async (req, res) => {
             const response = await Bot.login(chatId, username)
             if (response) {
                 res.sendStatus(200)
+                return;
             }
         }
 

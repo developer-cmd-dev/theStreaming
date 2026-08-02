@@ -11,7 +11,7 @@ export async function genAi(content?:string):Promise<string|boolean> {
 
 
    const interaction = await ai.models.generateContent({
-    model: "gemini-3.6-flash",
+    model: "gemini-3.5-flash-lite",
     config:{
         systemInstruction: "You are an AI assistant working solely as a chatbot. Your task is to provide appropriate and helpful replies to any text message you receive. Always respond as a text-based conversational agent."
     

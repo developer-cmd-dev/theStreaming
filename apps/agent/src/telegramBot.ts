@@ -1,6 +1,6 @@
 import { roleSchema, type SendBotMessage } from "@repo/zod/schema";
 import axios from "axios";
-import { prisma } from "../../packages/db";
+import { prisma } from "../../../packages/db";
 import redisClient from "@repo/redis/redisClient";
 
 
