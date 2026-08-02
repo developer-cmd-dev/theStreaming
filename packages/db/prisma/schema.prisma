@@ -107,6 +107,6 @@ model AI_Agent_Bot {
   telegramUsername String   @unique
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-  userId           String
-  user             User     @relation(fields: [telegramUsername], references: [id])
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id])
 }

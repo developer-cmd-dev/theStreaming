@@ -17,8 +17,5 @@ export async function genAi(content?:string):Promise<string|boolean> {
     },
     contents:content
   });
-      console.log(interaction.text);
-      console.log(interaction)
-
       return interaction.text??false;
 }
