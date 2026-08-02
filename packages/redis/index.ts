@@ -1,7 +1,7 @@
 import { RedisClient } from "bun";
 
-export const redisClient = new RedisClient("redis://localhost:6379",{autoReconnect:false});
+ const redisClient = new RedisClient("redis://localhost:6379",{autoReconnect:false});
 
 
-
+export default redisClient
 

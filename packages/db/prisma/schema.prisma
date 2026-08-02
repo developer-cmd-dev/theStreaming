@@ -4,8 +4,8 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
   previewFeatures = ["fullTextSearchPostgres"]
 }
 
@@ -14,25 +14,24 @@ datasource db {
 }
 
 model User {
-  id          String     @id @default(uuid())
-  email       String     @unique
-  password    String
-  username    String     @unique
-  role        Role       @default(USER)
-  comments    Comments[]
+  id           String     @id @default(uuid())
+  email        String     @unique
+  password     String
+  username     String     @unique
+  role         Role       @default(USER)
+  comments     Comments[]
   // subscriptions: Users who subscribe to this user
-  subscribers User[]     @relation("UserSubscribers")
+  subscribers  User[]     @relation("UserSubscribers")
   // Reverse fields for self-relations
-  subscribedTo User[] @relation("UserSubscribers") 
+  subscribedTo User[]     @relation("UserSubscribers")
 
   streams Stream[]
 
   refreshToken RefreshToken?
 
-
-
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  aiAgentBot AI_Agent_Bot?
 }
 
 enum Role {
@@ -59,8 +58,6 @@ model Stream {
   updatedAt      DateTime   @updatedAt
 }
 
-
-
 model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
@@ -73,12 +70,12 @@ model RefreshToken {
 }
 
 model Chat {
-  id        String   @id @default(uuid())
-  streamId  String   @unique
-  stream    Stream   @relation(fields: [streamId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  watching  Int      @default(0)
+  id        String    @id @default(uuid())
+  streamId  String    @unique
+  stream    Stream    @relation(fields: [streamId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  watching  Int       @default(0)
   message   Message[]
 }
 
@@ -89,8 +86,7 @@ model Message {
   updatedAt DateTime @updatedAt
   chatId    String   @unique
   chat      Chat     @relation(fields: [chatId], references: [id])
-  username  String     
-  
+  username  String
 }
 
 model Comments {
@@ -104,4 +100,13 @@ model Comments {
 
   user   User   @relation(fields: [username], references: [username])
   stream Stream @relation(fields: [streamId], references: [id])
+}
+
+model AI_Agent_Bot {
+  id               String   @id @default(uuid())
+  telegramUsername String   @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  userId           String
+  user             User     @relation(fields: [telegramUsername], references: [id])
 }

@@ -43,3 +43,11 @@ export {
 CreateRoomSchema,
 JoinRoomSchema
 } from './schema/websocket_schema'
+
+export {
+  type TelegramUser,
+  type TelegramChat,
+  type TelegramMessage,
+  type TelegramUpdate,
+  type SendBotMessage
+} from "./types/telegram_bot"

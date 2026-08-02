@@ -2,10 +2,11 @@
   "name": "@repo/redis",
   "module": "index.ts",
   "type": "module",
+
+  "private": true,
   "exports":{
     "./redisClient":"./index.ts"
   },
-  "private": true,
   "devDependencies": {
     "@types/bun": "latest"
   },
