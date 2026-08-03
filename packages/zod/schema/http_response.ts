@@ -1,6 +1,6 @@
-export type HttpResponse = {
+export type HttpResponse<T=any> = {
     success:boolean;
     message:string;
     status:number;
-    data:any;
+    data:T;
 }
