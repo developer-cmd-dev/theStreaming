@@ -1,5 +1,6 @@
 import { streamSchema, type CreateStreamInput, type HttpResponse } from "@repo/zod/schema";
 import {axiosHandler,type AxiosPayload} from "@repo/axios"
+import { CustomError } from "@repo/customError";
 
 export class Tools {
 
@@ -12,17 +13,25 @@ export class Tools {
                 method:'POST',
                 data:streamData,
                 headers:{
-                    "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJmYTIwMWQxZi0xZTM4LTQwMDItOTRiOC00ZGRjYjNhZWQxOGYiLCJ1c2VybmFtZSI6InRib25lZ2FtaW5nIiwiaWF0IjoxNzg1NzM4NzU2LCJleHAiOjE3ODU3NDk1NTZ9.O9tnz2G4yW2cMZ5iJufFAmtlGpcEfZfdZSQ13uEToSY"
+                    "Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJmYTIwMWQxZi0xZTM4LTQwMDItOTRiOC00ZGRjYjNhZWQxOGYiLCJ1c2VybmFtZSI6InRib25lZ2FtaW5nIiwiaWF0IjoxNzg1ODM4MzU1LCJleHAiOjE3ODU4NDkxNTV9.j_ZWH2wyfEaxs3iT1EkxjAT351rJ-Ra5BEfPxkx7dXg"
                 }
             }
             const response = await axiosHandler<HttpResponse<{streamId:string}>>(axiosPayload);
 
             return response.data;
         } catch (error) {
-            throw error;
+            if(error instanceof CustomError){
+                console.log(error)
+                throw error
+            }
+            throw new CustomError("Something went wrong",500)
+
         }
 
     }
+
+
+    
 
 
     

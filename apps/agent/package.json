@@ -18,6 +18,7 @@
     "@repo/db": "*",
     "@repo/redis": "*",
     "@repo/zod": "*",
+    "@repo/customError":"*",
     "@types/express": "^5.0.6",
     "axios": "^1.19.0",
     "express": "^5.2.1",

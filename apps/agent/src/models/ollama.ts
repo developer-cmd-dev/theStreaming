@@ -42,6 +42,26 @@ export async function ollamaAi(content:Message[]):Promise<ChatResponse> {
                             required: ['title', "description"]
                         }
                     }
+                },
+                {
+                    type:'function',
+                    function:{
+                        name:"schedule streams",
+                        description:"Schedule the stream in cron job into theStreaming http server",
+                        parameters: {
+                            type: "object",
+                            properties: {
+                                streamId: {
+                                    type:"string",
+                                },
+                                targetTime: {
+                                    type: "string",
+                                },
+                               
+                            },
+                            required: ['streamId', "targetTime"]
+                        }
+                    }
                 }
             ]
         })

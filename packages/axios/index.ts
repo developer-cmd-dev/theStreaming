@@ -1,5 +1,6 @@
 import axios, { Axios, AxiosError } from "axios";
 import {z, type HttpResponse} from '@repo/zod/schema'
+import { CustomError } from "@repo/customError";
 export interface AxiosPayload {
     url: string,
     method: 'get' | 'GET' | 'delete' | 'DELETE' | 'head' | 'HEAD' | 'options' | 'OPTIONS' | 'post' | 'POST' | 'put' | 'PUT' | 'patch' | 'PATCH',
@@ -41,12 +42,11 @@ export async function axiosHandler<T=any>(data:AxiosPayload):Promise<T> {
                             error.response.data.message :
                             error.message ||
                             "Something went wrong"
-            console.log(message)     
-            throw new Error(message)       
+            throw new CustomError(message,status)    
             
         }
 
-    throw new Error("Unexpected Error")
+    throw new CustomError("Unexpected Error",500)
     }
 }
     

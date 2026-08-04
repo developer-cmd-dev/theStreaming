@@ -1,20 +1,16 @@
 {
-  "name": "@repo/axios",
+  "name": "@repo/customError",
   "module": "index.ts",
   "type": "module",
   "private": true,
   "scripts": {
-    "./axiosHandler": "./index.ts"
+    "./customError": "./index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
-  },
-  "dependencies": {
-    "axios": "^1.19.0",
-    "@repo/zod":"*",
-    "@repo/customError":"*"
   }
+
 }

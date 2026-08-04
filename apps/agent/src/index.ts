@@ -17,7 +17,6 @@ app.get("/", (req: Request, res: Response) => {
 })
 
 app.post('/webhook', async (req, res) => {
-
     const payload: TelegramUpdate = req.body;
 
     try {
@@ -123,15 +122,11 @@ app.post('/webhook', async (req, res) => {
 
         } else {
 
-
             Bot.sendChatAction(chatId, "typing")
-            const response = await genAi(message);
-            if (response) {
-
-                Bot.sendMessages({ chat_id: chatId, text: response.toString() })
-                res.sendStatus(200)
-                return
-            }
+            const response = await runLoop(message);
+            const formatedText = formateForTelegramBotMessage(response)
+            Bot.sendMessages({chat_id:chatId,text:formatedText,parse_mode:"HTML"})
+            res.sendStatus(200)
 
         }
     } catch (error) {
@@ -140,6 +135,30 @@ app.post('/webhook', async (req, res) => {
         return
     }
 });
+
+
+function formateForTelegramBotMessage(message:string):string{
+    return message
+    // Bold
+    .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+
+    // Italic
+    .replace(/\*(.*?)\*/g, "<i>$1</i>")
+
+    // Inline code
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+
+    // Code blocks
+    .replace(/```([\s\S]*?)```/g, "<pre>$1</pre>")
+
+    // Headings
+    .replace(/^### (.*)$/gm, "<b>$1</b>")
+    .replace(/^## (.*)$/gm, "<b>$1</b>")
+    .replace(/^# (.*)$/gm, "<b>$1</b>")
+
+    // Bullets
+    .replace(/^- /gm, "• ");
+}
 
 
 

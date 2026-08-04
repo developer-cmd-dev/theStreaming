@@ -29,7 +29,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
         // }
     } catch (error) {
         if (error instanceof JsonWebTokenError) {
-            throw new CustomError(error.message, 401);
+            throw new CustomError(`Unauthorized:${error.message}`, 401);
         }
     }
 

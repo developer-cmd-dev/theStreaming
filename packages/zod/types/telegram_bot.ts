@@ -39,7 +39,8 @@ export interface TelegramUpdate {
 export interface SendBotMessage{
     chat_id:number,
     text:string,
-    reply_markup?:ReplyMarkup
+    reply_markup?:ReplyMarkup,
+    parse_mode?:"HTML"|string
 
 }
 

@@ -15,6 +15,7 @@
       "dependencies": {
         "@google/genai": "^2.15.0",
         "@repo/axios": "*",
+        "@repo/customError": "*",
         "@repo/db": "*",
         "@repo/redis": "*",
         "@repo/zod": "*",
@@ -110,6 +111,7 @@
     "packages/axios": {
       "name": "@repo/axios",
       "dependencies": {
+        "@repo/customError": "*",
         "@repo/zod": "*",
         "axios": "^1.19.0",
       },
@@ -131,6 +133,15 @@
         "@types/bun": "latest",
         "@types/pg": "^8.20.0",
         "prisma": "^7.8.0",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
+    "packages/error": {
+      "name": "@repo/customError",
+      "devDependencies": {
+        "@types/bun": "latest",
       },
       "peerDependencies": {
         "typescript": "^5",
@@ -636,6 +647,8 @@
     "@radix-ui/rect": ["@radix-ui/rect@1.1.2", "", {}, "sha512-xnXE7wG13PI+cxieVssYXlQJuYVRhH9NBoxt3KNwzghDIA69GMm7d4wXRouHIYjE+KvS6U/MsMO73NdS2MH9ZA=="],
 
     "@repo/axios": ["@repo/axios@workspace:packages/axios"],
+
+    "@repo/customError": ["@repo/customError@workspace:packages/error"],
 
     "@repo/db": ["@repo/db@workspace:packages/db"],
 
