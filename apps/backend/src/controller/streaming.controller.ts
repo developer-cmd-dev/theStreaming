@@ -14,7 +14,7 @@ import { axiosHandler } from "../lib/axios";
 
 export async function createStream(req: Request, res: Response) {
 
-    try {
+  
         const { data: streamConfig, error } = createStreamSchema.safeParse(req.body);
 
 
@@ -23,8 +23,7 @@ export async function createStream(req: Request, res: Response) {
             throw new CustomError(errorMessage, 422);
         }
 
-        console.log(streamConfig)
-
+        try {
         const response = await prisma.stream.create({
             data: {
                 title: streamConfig.title,

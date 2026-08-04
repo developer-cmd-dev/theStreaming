@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev":"bun index.ts"
+    "dev": "bun ./src/index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
@@ -14,12 +14,13 @@
   },
   "dependencies": {
     "@google/genai": "^2.15.0",
+    "@repo/axios": "*",
+    "@repo/db": "*",
+    "@repo/redis": "*",
     "@repo/zod": "*",
-    "@repo/db":"*",
-    "@repo/redis":"*",
-    "@repo/axios":"*",
     "@types/express": "^5.0.6",
     "axios": "^1.19.0",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "ollama": "^0.6.3"
   }
 }

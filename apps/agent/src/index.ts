@@ -4,7 +4,8 @@ import { genAi } from './genAi'
 import redisClient from '@repo/redis/redisClient';
 import Bot from './telegramBot';
 import { prisma } from '../../../packages/db';
-import { redis } from 'bun';
+import { runLoop } from './agentloop';
+
 
 const app = express();
 
@@ -151,5 +152,31 @@ app.listen(3003, (error) => {
         console.log(error);
         return
     }
+
     console.log(`Agent server is running on ${3003}`);
+
+    const worker = new Worker(new URL("./worker.ts", import.meta.url),{
+        name:'Agent Cron job',
+        type:'module'
+    });
+    // console.log('Cron Job worker Deployed with id: ',worker.threadId)
+
+    // worker.postMessage("start")
+    // worker.onmessage=event=>{
+    //     console.log(event.data)
+    // }
+
+    // worker.onerror = error=>{
+    //     console.log(error)
+    // }
+
+    // const targetTime = new Date();
+    // targetTime.setMinutes(targetTime.getMinutes()+1,0,0);
+    
+    // setInterval(() => {
+    //     const currentTime = new Date();
+    //     console.log(currentTime.getTime()," : ",targetTime.getTime())
+       
+    // }, 1000);
+
 })

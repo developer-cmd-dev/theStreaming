@@ -5,9 +5,7 @@ export class Tools {
 
 
 
-
-
-    public async createStream(streamData:CreateStreamInput):Promise<{streamId:string}|undefined>{
+    public async createStream(streamData:CreateStreamInput):Promise<{streamId:string}>{
         try {
             const axiosPayload:AxiosPayload = {
                 url:"http://localhost:3000/api/v1/create-stream",
@@ -20,11 +18,17 @@ export class Tools {
             const response = await axiosHandler<HttpResponse<{streamId:string}>>(axiosPayload);
 
             return response.data;
-        } catch (error:any) {
-            throw new  Error(error)
+        } catch (error) {
+            throw error;
         }
 
     }
+
+
+    
+
+
+    
 }
 
 
