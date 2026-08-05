@@ -29,6 +29,8 @@ model User {
 
   refreshToken RefreshToken?
 
+  agentConnection AgentConnection?
+
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
   aiAgentBot AI_Agent_Bot?
@@ -105,10 +107,14 @@ model Comments {
 model AI_Agent_Bot {
   id               String   @id @default(uuid())
   telegramUsername String   @unique
+  chats            String[] 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   userId           String   @unique
+  agentConnectionId String @unique
+  agentConnection  AgentConnection @relation(fields: [agentConnectionId],references: [id])
   user             User     @relation(fields: [userId], references: [id])
+
 }
 
 model TelegramBot {
@@ -116,4 +122,16 @@ model TelegramBot {
   url       String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+
+model AgentConnection {
+  id             String   @id @default(uuid())
+  jwt_token      String
+  connection_id  Int
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id])
+  aiAgentBot     AI_Agent_Bot?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

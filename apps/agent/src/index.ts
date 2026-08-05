@@ -1,5 +1,5 @@
 import { publicUserSchema, type PublicUser, type SendBotMessage, type TelegramUpdate } from '@repo/zod/schema';
-import express, { type Request, type Response } from 'express';
+import express, { response, type Request, type Response } from 'express';
 import redisClient from '@repo/redis/redisClient';
 import Bot from './bot/telegramBot';
 import { prisma } from '../../../packages/db';
@@ -7,6 +7,7 @@ import { runLoop } from './agent_loop/agentloop';
 import { log_data } from './console/console';
 import { axiosHandler, type AxiosPayload } from '@repo/axios';
 import { CustomError } from '@repo/customError';
+import { isNumericLiteral } from 'typescript';
 
 
 const app = express();
@@ -20,36 +21,28 @@ app.get("/", (req: Request, res: Response) => {
 
 app.post('/webhook', async (req, res) => {
     const payload: TelegramUpdate = req.body;
-  
+    if (!payload) {
+        res.sendStatus(200);
+        return
+    }
+
+    const username = payload.message?.chat.username;
+    const chatId = payload.message?.chat.id;
+    const message = payload.message?.text
+    if (!chatId || !message) {
+        res.sendStatus(200);
+        return
+    }
+
+    if (!username) {
+        Bot.sendMessages({ chat_id: chatId, text: "Create username.." });
+        res.sendStatus(200);
+        return
+    }
+
+
     try {
-
-        if (!payload) {
-            res.sendStatus(200);
-            return
-        }
-
-        const username = payload.message?.chat.username;
-        const chatId = payload.message?.chat.id;
-        const message = payload.message?.text
-
-      
-
-
-        if (!chatId || !message) {
-            res.sendStatus(200);
-            return
-        }
-
-        if(!username){
-            Bot.sendMessages({chat_id:chatId,text:"Create username.."});
-            res.sendStatus(200);
-            return
-        }
-
-
-
         if (payload.message?.text === '/logout') {
-            
             const response = await Bot.logout(chatId, username);
             console.log(response)
             if (response) {
@@ -59,34 +52,38 @@ app.post('/webhook', async (req, res) => {
         }
 
 
-
-
-
         if (payload.message?.reply_to_message) {
-            const accessToken = payload.message.text;
-            if(!accessToken){
-                const botAuthMessage: SendBotMessage = {
-                    chat_id: payload.message?.chat.id ?? 0,
-                    text: message,
-                    reply_markup: {
-                        force_reply: true,
-                        input_field_placeholder: "Enter Key"
-                    }
+            const connectionId = payload.message.text;
 
-                }
-                Bot.sendMessages(botAuthMessage);
-                res.sendStatus(200);
-                return
+
+            if (!connectionId) {
+                const message = "Enter Valid Connection Id"
+                await Bot.sendReplyMarkupMessage({ message, chatId, input_field_placeholder: "Enter Connection Id" })
+                return;
             }
-            const user =await userAuthentication(accessToken,username)
+
+            const formatedConnectionId = Number(connectionId.trim());
+
+            if (typeof formatedConnectionId !== 'number' || !Number.isFinite(formatedConnectionId) || Math.abs(formatedConnectionId).toString().length !== 8) {
+                const message = "Enter Valid Connection Id"
+                await Bot.sendReplyMarkupMessage({ message, chatId, input_field_placeholder: "Enter Connection Id" })
+                res.sendStatus(200);
+                return;
+            }
+
+            const user = await userAuthentication(formatedConnectionId, username)
+
+            // await Bot.sendMessages({ chat_id: payload.message.chat.id, text: "You are authorized continue to chat." })
+            //     res.sendStatus(200);
+            //     return;
 
             if (user) {
-                await redisClient.hset("users",{username:user.username,token:user.token})
+                await redisClient.hset(user.telegramUsername, user)
                 await Bot.sendMessages({ chat_id: payload.message.chat.id, text: "You are authorized continue to chat." })
                 res.sendStatus(200);
                 return;
             } else {
-                await Bot.sendMessages({ chat_id: payload.message.chat.id, text: "Invalid Email." })
+                await Bot.sendMessages({ chat_id: payload.message.chat.id, text: "Expired Connection ID." })
                 res.sendStatus(200);
                 return;
             }
@@ -95,109 +92,95 @@ app.post('/webhook', async (req, res) => {
         }
 
 
-        const checkUserInCache = await redisClient.hget("users",username);
-        
+        const checkUserInCache = await redisClient.hget(username, 'jwt_token');
+
+        console.log(checkUserInCache)
 
         if (!checkUserInCache) {
 
-            const findInDB = await prisma.aI_Agent_Bot.findFirst({
-                where: {
-                    telegramUsername: username
-                }
-            })
+            const message = "Unauthorized User. You have to enter 8 digit Connection Id."
 
+            Bot.sendReplyMarkupMessage({ message, chatId, input_field_placeholder: "Enter Connection Id" })
+            res.sendStatus(200)
+            return;
 
-
-            if (!findInDB) {
-                const message = "Unauthorized User. You have to enter your Email."
-
-                const botAuthMessage: SendBotMessage = {
-                    chat_id: payload.message?.chat.id ?? 0,
-                    text: message,
-                    reply_markup: {
-                        force_reply: true,
-                        input_field_placeholder: "Enter Key"
-                    }
-
-                }
-
-                const response = await Bot.sendMessages(botAuthMessage);
-                res.sendStatus(200);
-                return;
-            } else {
-                await redisClient.sadd('users', username);
-                await Bot.sendMessages({ chat_id: chatId, text: "You are authorized continue to chat." })
-                res.sendStatus(200);
-                return;
-            }
 
         } else {
 
             Bot.sendChatAction(chatId, "typing")
-            const response = await runLoop(message,chatId);
+            const response = await runLoop(message, chatId);
             const formatedText = formateForTelegramBotMessage(response)
-            Bot.sendMessages({chat_id:chatId,text:formatedText,parse_mode:"HTML"})
+            Bot.sendMessages({ chat_id: chatId, text: formatedText, parse_mode: "HTML" })
             res.sendStatus(200)
 
         }
     } catch (error) {
         console.log(error);
+        Bot.sendMessages({ chat_id: chatId, text: "Something went wrong" })
         res.sendStatus(200);
         return
     }
 });
 
 
-function formateForTelegramBotMessage(message:string):string{
+function formateForTelegramBotMessage(message: string): string {
     return message
-    // Bold
-    .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+        // Bold
+        .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
 
-    // Italic
-    .replace(/\*(.*?)\*/g, "<i>$1</i>")
+        // Italic
+        .replace(/\*(.*?)\*/g, "<i>$1</i>")
 
-    // Inline code
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
+        // Inline code
+        .replace(/`([^`]+)`/g, "<code>$1</code>")
 
-    // Code blocks
-    .replace(/```([\s\S]*?)```/g, "<pre>$1</pre>")
+        // Code blocks
+        .replace(/```([\s\S]*?)```/g, "<pre>$1</pre>")
 
-    // Headings
-    .replace(/^### (.*)$/gm, "<b>$1</b>")
-    .replace(/^## (.*)$/gm, "<b>$1</b>")
-    .replace(/^# (.*)$/gm, "<b>$1</b>")
+        // Headings
+        .replace(/^### (.*)$/gm, "<b>$1</b>")
+        .replace(/^## (.*)$/gm, "<b>$1</b>")
+        .replace(/^# (.*)$/gm, "<b>$1</b>")
 
-    // Bullets
-    .replace(/^- /gm, "• ");
+        // Bullets
+        .replace(/^- /gm, "• ");
 }
 
 
 
 
-async function userAuthentication(key:string,telegramUsername:string):Promise<{token:string,username:string}>{
+async function userAuthentication(connectionId: number, telegramUsername: string): Promise<{
+    telegramUsername: string,
+    agentConnectionId: number,
+    userId: string,
+    jwt_token:string,
+}> {
 
     try {
 
-        const payload:AxiosPayload = {
-            url:"http://localhost:3000/api/v1/agent-auth",
-            method:"POST",
-            data:{
-                key,
+        const payload: AxiosPayload = {
+            url: "http://localhost:3000/api/v1/authenticate-agent",
+            method: "POST",
+            data: {
+                connectionId,
                 telegramUsername
             }
         }
-        
+
         const response = await axiosHandler(payload);
         return response
-        
+
     } catch (error) {
         console.log(error)
-        throw new CustomError("Something went wrong",500)
+        throw new CustomError("Something went wrong", 500)
     }
 
 
 
 }
+
+
+
 
 
 
@@ -210,9 +193,9 @@ app.listen(3003, (error) => {
 
     console.log(`Agent server is running on ${3003}`);
 
-    const worker = new Worker(new URL("./worker.ts", import.meta.url),{
-        name:'Agent Cron job',
-        type:'module'
+    const worker = new Worker(new URL("./worker.ts", import.meta.url), {
+        name: 'Agent Cron job',
+        type: 'module'
     });
     // console.log('Cron Job worker Deployed with id: ',worker.threadId)
 
@@ -227,11 +210,11 @@ app.listen(3003, (error) => {
 
     // const targetTime = new Date();
     // targetTime.setMinutes(targetTime.getMinutes()+1,0,0);
-    
+
     // setInterval(() => {
     //     const currentTime = new Date();
     //     console.log(currentTime.getTime()," : ",targetTime.getTime())
-       
+
     // }, 1000);
 
 })

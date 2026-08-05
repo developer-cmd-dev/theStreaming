@@ -5,7 +5,7 @@ import { authMiddleware } from "../middleware/auth.middleware";
 import { createStream,connectMediaServer,endStream, startRecordingStream, deleteStream,updateStreamOnLive, obsStream} from "../controller/streaming.controller";
 import { liveStreams } from "../controller/dashboard.controller";
 import { searchUser } from "../controller/search.controller";
-import { connectToTheAIagent } from "../controller/agent.controller";
+import { authenticateAgentUser, connectToTheAIagent } from "../controller/agent.controller";
 
 
 const router = Router();
@@ -30,7 +30,8 @@ router.get('/internal/get-obs-stream',obsStream);
 
 // Agent Route
 
-router.get('/connect-agent',authMiddleware,connectToTheAIagent)
+router.get('/connect-agent',authMiddleware,connectToTheAIagent);
+router.post('/authenticate-agent',authenticateAgentUser);
 
 
 

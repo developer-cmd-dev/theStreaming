@@ -66,4 +66,20 @@ export default class Bot {
         }
     }
 
+
+    static async sendReplyMarkupMessage({message,chatId,input_field_placeholder}:{message:string,chatId:number,input_field_placeholder:string}){
+
+        const botAuthMessage: SendBotMessage = {
+            chat_id: chatId,
+            text: message,
+            reply_markup: {
+                force_reply: true,
+                input_field_placeholder: input_field_placeholder
+            }
+
+        }
+
+         await this.sendMessages(botAuthMessage);
+
+    }
 }
