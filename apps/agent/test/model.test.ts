@@ -1,6 +1,6 @@
 import {test,expect} from "bun:test"
-import { genAi } from "../src/genAi"
-import { ollamaAi } from "../src/models/ollama";
+import { genAi } from "../src/llm_models/genAi"
+import { ollamaAi } from "../src/llm_models/ollama";
 
 
 

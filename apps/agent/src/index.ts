@@ -1,10 +1,9 @@
 import { publicUserSchema, type PublicUser, type SendBotMessage, type TelegramUpdate } from '@repo/zod/schema';
 import express, { type Request, type Response } from 'express';
-import { genAi } from './genAi'
 import redisClient from '@repo/redis/redisClient';
-import Bot from './telegramBot';
+import Bot from './bot/telegramBot';
 import { prisma } from '../../../packages/db';
-import { runLoop } from './agentloop';
+import { runLoop } from './agent_loop/agentloop';
 
 
 const app = express();

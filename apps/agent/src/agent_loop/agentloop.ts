@@ -1,6 +1,6 @@
 import type { Message } from "ollama";
 import { ollamaAi } from "./models/ollama";
-import { Tools } from "./tools";
+import { Tools } from "./tools/tools";
 import type { CreateStreamInput } from "@repo/zod/schema";
 import { CustomError } from "@repo/customError";
 
