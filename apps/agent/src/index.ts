@@ -4,6 +4,9 @@ import redisClient from '@repo/redis/redisClient';
 import Bot from './bot/telegramBot';
 import { prisma } from '../../../packages/db';
 import { runLoop } from './agent_loop/agentloop';
+import { log_data } from './console/console';
+import { axiosHandler, type AxiosPayload } from '@repo/axios';
+import { CustomError } from '@repo/customError';
 
 
 const app = express();
@@ -17,7 +20,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.post('/webhook', async (req, res) => {
     const payload: TelegramUpdate = req.body;
-
+  
     try {
 
         if (!payload) {
@@ -29,16 +32,26 @@ app.post('/webhook', async (req, res) => {
         const chatId = payload.message?.chat.id;
         const message = payload.message?.text
 
+      
 
 
-        if (!username || !chatId || !message) {
+        if (!chatId || !message) {
+            res.sendStatus(200);
+            return
+        }
+
+        if(!username){
+            Bot.sendMessages({chat_id:chatId,text:"Create username.."});
             res.sendStatus(200);
             return
         }
 
 
+
         if (payload.message?.text === '/logout') {
-            const response = await Bot.login(chatId, username)
+            
+            const response = await Bot.logout(chatId, username);
+            console.log(response)
             if (response) {
                 res.sendStatus(200)
                 return;
@@ -50,26 +63,25 @@ app.post('/webhook', async (req, res) => {
 
 
         if (payload.message?.reply_to_message) {
-            const email = payload.message.text;
+            const accessToken = payload.message.text;
+            if(!accessToken){
+                const botAuthMessage: SendBotMessage = {
+                    chat_id: payload.message?.chat.id ?? 0,
+                    text: message,
+                    reply_markup: {
+                        force_reply: true,
+                        input_field_placeholder: "Enter Key"
+                    }
 
-            const { data: user } = publicUserSchema.safeParse(await prisma.user.findFirst({
-                where: {
-                    email
                 }
-            }))
-
-
-
+                Bot.sendMessages(botAuthMessage);
+                res.sendStatus(200);
+                return
+            }
+            const user =await userAuthentication(accessToken,username)
 
             if (user) {
-                const newBotUser = await prisma.aI_Agent_Bot.create({
-                    data: {
-                        telegramUsername: username,
-                        userId: user?.id
-                    }
-                })
-
-                await redisClient.sadd('users', username);
+                await redisClient.hset("users",{username:user.username,token:user.token})
                 await Bot.sendMessages({ chat_id: payload.message.chat.id, text: "You are authorized continue to chat." })
                 res.sendStatus(200);
                 return;
@@ -83,8 +95,8 @@ app.post('/webhook', async (req, res) => {
         }
 
 
-        const checkUserInCache = await redisClient.sismember("users", username);
-
+        const checkUserInCache = await redisClient.hget("users",username);
+        
 
         if (!checkUserInCache) {
 
@@ -104,7 +116,7 @@ app.post('/webhook', async (req, res) => {
                     text: message,
                     reply_markup: {
                         force_reply: true,
-                        input_field_placeholder: "Enter Email"
+                        input_field_placeholder: "Enter Key"
                     }
 
                 }
@@ -122,7 +134,7 @@ app.post('/webhook', async (req, res) => {
         } else {
 
             Bot.sendChatAction(chatId, "typing")
-            const response = await runLoop(message);
+            const response = await runLoop(message,chatId);
             const formatedText = formateForTelegramBotMessage(response)
             Bot.sendMessages({chat_id:chatId,text:formatedText,parse_mode:"HTML"})
             res.sendStatus(200)
@@ -161,6 +173,31 @@ function formateForTelegramBotMessage(message:string):string{
 
 
 
+
+async function userAuthentication(key:string,telegramUsername:string):Promise<{token:string,username:string}>{
+
+    try {
+
+        const payload:AxiosPayload = {
+            url:"http://localhost:3000/api/v1/agent-auth",
+            method:"POST",
+            data:{
+                key,
+                telegramUsername
+            }
+        }
+        
+        const response = await axiosHandler(payload);
+        return response
+        
+    } catch (error) {
+        console.log(error)
+        throw new CustomError("Something went wrong",500)
+    }
+
+
+
+}
 
 
 

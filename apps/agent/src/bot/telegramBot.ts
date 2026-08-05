@@ -1,7 +1,8 @@
 import { roleSchema, type SendBotMessage } from "@repo/zod/schema";
-import axios from "axios";
-import { prisma } from "../../../packages/db";
+import axios, { AxiosError } from "axios";
+import { prisma } from "@repo/db/prisma";
 import redisClient from "@repo/redis/redisClient";
+import { CustomError } from "@repo/customError";
 
 
 type ActionType = "typing" | "upload_photo" | "record_voice"
@@ -9,10 +10,10 @@ export default class Bot {
 
     static BOT_TOKEN = process.env.BOT_TOKEN ?? ""
 
+    
 
 
-
-    public static async login(chatId: number, username: string): Promise<boolean> {
+    public static async logout(chatId: number, username: string): Promise<boolean> {
         await prisma.aI_Agent_Bot.delete({
             where: {
                 telegramUsername: username
@@ -38,8 +39,12 @@ export default class Bot {
             const response = await axios.post(url, content);
             return response.data
         } catch (error) {
-            console.log(error);
-            throw Error("Something went wrong")
+           if(error instanceof AxiosError){
+            const message  = error.response?.data ? error.request.data.message : "Something went wrong";
+            const statusCode = error.response?.data ? error.response.data.statusCdoe : 500;
+            throw new CustomError(message,statusCode)
+           }
+           throw new CustomError("Unexptected Error",500)
         }
 
 

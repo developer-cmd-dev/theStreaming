@@ -29,8 +29,8 @@ model User {
 
   refreshToken RefreshToken?
 
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
   aiAgentBot AI_Agent_Bot?
 }
 
@@ -109,4 +109,11 @@ model AI_Agent_Bot {
   updatedAt        DateTime @updatedAt
   userId           String   @unique
   user             User     @relation(fields: [userId], references: [id])
+}
+
+model TelegramBot {
+  id        String   @id @default(uuid())
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

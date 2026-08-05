@@ -6,7 +6,7 @@ export class Tools {
 
 
 
-    public async createStream(streamData:CreateStreamInput):Promise<{streamId:string}>{
+     static async createStream(streamData:CreateStreamInput):Promise<{streamId:string}>{
         try {
             const axiosPayload:AxiosPayload = {
                 url:"http://localhost:3000/api/v1/create-stream",

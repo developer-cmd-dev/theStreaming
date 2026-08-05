@@ -1,20 +1,36 @@
 import type { Message } from "ollama";
-import { ollamaAi } from "./models/ollama";
-import { Tools } from "./tools/tools";
+import { ollamaAi } from "../llm_models/ollama";
+import { Tools } from "../tools/tools";
 import type { CreateStreamInput } from "@repo/zod/schema";
 import { CustomError } from "@repo/customError";
+import { log_data } from "../console/console";
 
 
 
 
-let memory: Message[] = []
+// let memory: Message[] = []
 
-export async function runLoop(content: string): Promise<string> {
-    const agentTools = new Tools()
-    memory.push({ role: "user", content });
+let contextMap = new Map<number,Message[]>();
+
+export async function runLoop(content: string,chatId:number): Promise<string> {
+
+    const checkUserContext = contextMap.has(chatId);
+
+    if(!checkUserContext){
+        contextMap.set(chatId,[{role:"user",content}])
+    }else if(checkUserContext){
+        const prevContext = contextMap.get(chatId);
+        prevContext?.push({role:"user",content});
+        contextMap.set(chatId,prevContext??[]);
+    }
+
+    const memory = contextMap.get(chatId);
+    if(!memory) return "";
+
     try {
 
         while (true) {
+          
             const llmResponse = await ollamaAi(memory);
             console.dir(llmResponse.message, { depth: null, color: true })
 
@@ -26,7 +42,7 @@ export async function runLoop(content: string): Promise<string> {
                         try {
                             const args = tool.function.arguments;
                             const streamData: CreateStreamInput = <CreateStreamInput>args
-                            const response = await agentTools.createStream(streamData);
+                            const response = await Tools.createStream(streamData);
                             memory.push({ role: 'tool',tool_name:tool.function.name, content: response.streamId })
                         } catch (error) {
                             if (error instanceof CustomError) {
@@ -34,12 +50,17 @@ export async function runLoop(content: string): Promise<string> {
                             }
                         }
                     }
+                    contextMap.set(chatId,memory)
                 }
             } else {
                 const llmMessage = llmResponse.message;
                 memory.push(llmMessage)
+                contextMap.set(chatId,memory)
+                log_data(contextMap)
+
                 return llmResponse.message.content
             }
+
         }
 
     } catch (error) {
@@ -47,6 +68,11 @@ export async function runLoop(content: string): Promise<string> {
     }
 
 
+}
+
+
+async function userContext(content:string,chatId:number) {
+    
 }
 
 
