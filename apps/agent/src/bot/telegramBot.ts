@@ -14,13 +14,9 @@ export default class Bot {
 
 
     public static async logout(chatId: number, username: string): Promise<boolean> {
-        await prisma.aI_Agent_Bot.delete({
-            where: {
-                telegramUsername: username
-            }
-        });
 
-        await redisClient.srem("users", username);
+
+        await redisClient.del(username);
         const response: { ok: boolean } = <{ ok: boolean }>await this.sendMessages({ chat_id: chatId, text: "Logout successfully" });
 
         if (!response.ok) return false;

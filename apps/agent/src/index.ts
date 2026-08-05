@@ -1,4 +1,4 @@
-import { publicUserSchema, type PublicUser, type SendBotMessage, type TelegramUpdate } from '@repo/zod/schema';
+import { publicUserSchema, UsernameSearchQuerySchema, type HttpResponse, type PublicUser, type SendBotMessage, type TelegramUpdate } from '@repo/zod/schema';
 import express, { response, type Request, type Response } from 'express';
 import redisClient from '@repo/redis/redisClient';
 import Bot from './bot/telegramBot';
@@ -44,7 +44,6 @@ app.post('/webhook', async (req, res) => {
     try {
         if (payload.message?.text === '/logout') {
             const response = await Bot.logout(chatId, username);
-            console.log(response)
             if (response) {
                 res.sendStatus(200)
                 return;
@@ -72,13 +71,10 @@ app.post('/webhook', async (req, res) => {
             }
 
             const user = await userAuthentication(formatedConnectionId, username)
-
-            // await Bot.sendMessages({ chat_id: payload.message.chat.id, text: "You are authorized continue to chat." })
-            //     res.sendStatus(200);
-            //     return;
-
             if (user) {
-                await redisClient.hset(user.telegramUsername, user)
+               const response = await redisClient.hset(user.telegramUsername, "user", JSON.stringify(user));
+       
+               console.log(response)
                 await Bot.sendMessages({ chat_id: payload.message.chat.id, text: "You are authorized continue to chat." })
                 res.sendStatus(200);
                 return;
@@ -92,11 +88,9 @@ app.post('/webhook', async (req, res) => {
         }
 
 
-        const checkUserInCache = await redisClient.hget(username, 'jwt_token');
+        const checkUserInCache = await redisClient.hget(username,"user");
 
-        console.log(checkUserInCache)
-
-        if (!checkUserInCache) {
+        if (!checkUserInCache && typeof checkUserInCache === 'object') {
 
             const message = "Unauthorized User. You have to enter 8 digit Connection Id."
 
@@ -147,14 +141,14 @@ function formateForTelegramBotMessage(message: string): string {
 }
 
 
-
-
-async function userAuthentication(connectionId: number, telegramUsername: string): Promise<{
-    telegramUsername: string,
+interface UserAuth{
+    telegramUsername:string,
     agentConnectionId: number,
     userId: string,
     jwt_token:string,
-}> {
+}
+
+async function userAuthentication(connectionId: number, telegramUsername: string): Promise<UserAuth> {
 
     try {
 
@@ -163,12 +157,12 @@ async function userAuthentication(connectionId: number, telegramUsername: string
             method: "POST",
             data: {
                 connectionId,
-                telegramUsername
+                username:telegramUsername
             }
         }
 
-        const response = await axiosHandler(payload);
-        return response
+        const response = await axiosHandler<HttpResponse<UserAuth>>(payload);
+        return response.data
 
     } catch (error) {
         console.log(error)

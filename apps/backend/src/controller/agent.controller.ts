@@ -1,5 +1,5 @@
 import { prisma } from "@repo/db/prisma";
-import { text, type Request, type Response } from "express";
+import e, { text, type Request, type Response } from "express";
 import QRCode from 'qrcode'
 import jwt, { type JwtPayload } from 'jsonwebtoken'
 import type { CreateUserInput, PublicUser } from "@repo/zod/schema";
@@ -15,8 +15,10 @@ export async function connectToTheAIagent(req: Request, res: Response) {
 
         const user = <PublicUser>await prisma.user.findFirst({ where: { id } });
 
-
         const telegramBotUrl = await prisma.telegramBot.findMany();
+        if(telegramBotUrl.length===0){
+            throw new CustomError("Agent Bot not found!",500);
+        }
 
         const url = telegramBotUrl[0]?.url;
 
@@ -46,6 +48,9 @@ export async function connectToTheAIagent(req: Request, res: Response) {
         }
         HttpResponse.success(res, response)
     } catch (error) {
+        if(error instanceof CustomError){
+            throw new CustomError(error.message,error.statusCode);
+        }
         throw new CustomError("Something went wrong", 500);
     }
 }
@@ -57,6 +62,8 @@ export async function authenticateAgentUser(req: Request, res: Response) {
     try {
 
         const { username, connectionId } = req.body;
+
+        console.log(username,connectionId)
 
         const response = await prisma.agentConnection.findFirst({
             where: {
@@ -70,18 +77,29 @@ export async function authenticateAgentUser(req: Request, res: Response) {
 
         const verifytoken =<jwt.UserJwtPayload> jwt.verify(response.jwt_token,JWT_SECRET_KEY);
 
-        console.log(verifytoken)
-
-      const agentBotResponse =   await prisma.aI_Agent_Bot.create({
-            data:{
-                telegramUsername:username,
-                agentConnectionId:connectionId,
-                userId:verifytoken.userId
+        const checkAiAgentBot = await prisma.aI_Agent_Bot.findFirst({
+            where:{
+                agentConnectionId:connectionId
             }
         })
 
+        if(!checkAiAgentBot){
+            const agentBotResponse =   await prisma.aI_Agent_Bot.create({
+                data:{
+                    telegramUsername:username,
+                    agentConnectionId:connectionId,
+                    userId:verifytoken.userId
+                }
+            })
+            HttpResponse.success(res,{...agentBotResponse,jwt_token:response.jwt_token});
+            return;
+
+        }
+
+  
+
         
-        HttpResponse.success(res,{...agentBotResponse,jwt_token:response.jwt_token})
+        HttpResponse.success(res,{...checkAiAgentBot,jwt_token:response.jwt_token})
     } catch (error) {
         console.log(error)
         throw new CustomError("Something went wrong", 500);

@@ -111,8 +111,8 @@ model AI_Agent_Bot {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   userId           String   @unique
-  agentConnectionId String @unique
-  agentConnection  AgentConnection @relation(fields: [agentConnectionId],references: [id])
+  agentConnectionId Int @unique
+  agentConnection  AgentConnection @relation(fields: [agentConnectionId],references: [connection_id])
   user             User     @relation(fields: [userId], references: [id])
 
 }
@@ -128,7 +128,7 @@ model TelegramBot {
 model AgentConnection {
   id             String   @id @default(uuid())
   jwt_token      String
-  connection_id  Int
+  connection_id  Int  @unique
   userId         String   @unique
   user           User     @relation(fields: [userId], references: [id])
   aiAgentBot     AI_Agent_Bot?

@@ -6,6 +6,7 @@ import { createStream,connectMediaServer,endStream, startRecordingStream, delete
 import { liveStreams } from "../controller/dashboard.controller";
 import { searchUser } from "../controller/search.controller";
 import { authenticateAgentUser, connectToTheAIagent } from "../controller/agent.controller";
+import { prisma } from "@repo/db/prisma";
 
 
 const router = Router();
@@ -32,6 +33,16 @@ router.get('/internal/get-obs-stream',obsStream);
 
 router.get('/connect-agent',authMiddleware,connectToTheAIagent);
 router.post('/authenticate-agent',authenticateAgentUser);
+
+
+router.post('/addurl',async(req,res)=>{
+    await prisma.telegramBot.create({
+        data:{
+            url:req.body.url
+        }
+    })
+    
+})
 
 
 

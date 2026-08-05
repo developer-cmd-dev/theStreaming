@@ -8,7 +8,6 @@ import { log_data } from "../console/console";
 
 
 
-// let memory: Message[] = []
 
 let contextMap = new Map<number,Message[]>();
 
@@ -25,7 +24,7 @@ export async function runLoop(content: string,chatId:number): Promise<string> {
     }
 
     const memory = contextMap.get(chatId);
-    if(!memory) return "";
+    if(!memory) return ""; // it needs to be fix
 
     try {
 
