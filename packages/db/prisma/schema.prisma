@@ -107,7 +107,7 @@ model Comments {
 model AI_Agent_Bot {
   id               String   @id @default(uuid())
   telegramUsername String   @unique
-  chats            String[] 
+  chats            UserContextData[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   userId           String   @unique
@@ -134,4 +134,15 @@ model AgentConnection {
   aiAgentBot     AI_Agent_Bot?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model UserContextData {
+  id        String   @id @default(uuid())
+  role      String
+  content   String
+  username  String?
+  tool_name String?
+  aiAgentBotId String @unique
+  aiAgentBot AI_Agent_Bot @relation(fields: [aiAgentBotId],references: [id])
+  createdAt DateTime @default(now())
 }

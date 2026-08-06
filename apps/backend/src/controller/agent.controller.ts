@@ -74,7 +74,6 @@ export async function authenticateAgentUser(req: Request, res: Response) {
 
         const { username, connectionId } = req.body;
 
-        console.log(username,connectionId)
 
         const response = await prisma.agentConnection.findFirst({
             where: {
@@ -121,54 +120,65 @@ export async function authenticateAgentUser(req: Request, res: Response) {
 }
 
 
+export async function saveAgentChats(req:Request,res:Response) {
+    
+    const {username,contextData}=req.body;
 
+    if(!username){
+        throw new CustomError("Invalid Username", 400);
+    }
 
-
-const algorithm = "aes-256-cbc";
-const secretKey = process.env.AI_AGENT_SECRET_KEY ?? ""
-
-
-const key = crypto
-    .createHash("sha512")
-    .update(secretKey)
-    .digest("hex")
-    .substring(0, 32);
-
-export function encryption(data: string): string {
-
-
-    const iv = crypto.randomBytes(16);
 
     try {
-        const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv)
-        let encrypted = cipher.update(data, "utf-8", "hex")
-        encrypted += cipher.final("hex")
+        // Check if contextData is an array
+        if (!Array.isArray(contextData) || contextData.length === 0) {
+            throw new CustomError("contextData must be a non-empty array.", 400);
+        }
 
-        // Package the IV and encrypted data together so it can be stored in a single
-        // column in the database.
-        return iv.toString("hex") + encrypted
+        // Find the aiAgentBotId for this username
+        const aiAgentBot = await prisma.aI_Agent_Bot.findUnique({
+            where: {
+                telegramUsername: username
+            }
+        });
+
+        if (!aiAgentBot) {
+            throw new CustomError("AI Agent Bot not found for this username.", 404);
+        }
+
+        // Prepare data for bulk create
+        // Each item: 'role', 'content', 'username', 'tool_name', must have aiAgentBotId
+        const records = contextData.map((item: any) => ({
+            role: item.role,
+            content: item.content,
+            username: item.username ?? null,
+            tool_name: item.tool_name ?? null,
+            aiAgentBotId: aiAgentBot.id
+        }));
+
+        // Save all context data to UserContextData
+        const saved = await prisma.userContextData.createMany({
+            data: records,
+            skipDuplicates: true // in case of duplicate unique constraints!
+        });
+
+        HttpResponse.success(res, { success: true, count: saved.count });
+        
+
     } catch (error) {
-        throw error
+    if (error instanceof CustomError) {
+        throw new CustomError(error.message,error.statusCode)
+    } else {
+        throw new CustomError("Failed to save agent chats.", 500);
     }
+    }
+
+
+
+
 
 }
 
-export function decrypt(data: string): string {
-    try {
-        // Unpackage the combined iv + encrypted message. Since we are using a fixed
-        // size IV, we can hard code the slice length.
-        const inputIV = data.slice(0, 32)
-        const encrypted = data.slice(32)
-        const decipher = crypto.createDecipheriv(
-            algorithm,
-            Buffer.from(key),
-            Buffer.from(inputIV, "hex"),
-        )
 
-        let decrypted = decipher.update(encrypted, "hex", "utf-8")
-        decrypted += decipher.final("utf-8")
-        return decrypted
-    } catch (error) {
-        throw error
-    }
-}
+
+
