@@ -4,27 +4,28 @@ import { Tools } from "../tools/tools";
 import type { CreateStreamInput } from "@repo/zod/schema";
 import { CustomError } from "@repo/customError";
 import { log_data } from "../console/console";
+import type { UserAuth } from "..";
 
 
 
 
 
-let contextMap = new Map<number,Message[]>();
+let contextMap = new Map<string,Message[]>();
 
-export async function runLoop(content: string,chatId:number): Promise<string> {
+export async function agentLoop(content: string,userPayload:UserAuth): Promise<string> {
 
-    const checkUserContext = contextMap.has(chatId);
+    const telegramUsername = userPayload.telegramUsername
+    const checkUserContext = contextMap.has(telegramUsername);
 
     if(!checkUserContext){
-        contextMap.set(chatId,[{role:"user",content}])
+        contextMap.set(telegramUsername,[{role:"user",content}])
     }else if(checkUserContext){
-        const prevContext = contextMap.get(chatId);
+        const prevContext = contextMap.get(telegramUsername);
         prevContext?.push({role:"user",content});
-        contextMap.set(chatId,prevContext??[]);
+        contextMap.set(telegramUsername,prevContext??[]);
     }
 
-    const memory = contextMap.get(chatId);
-    if(!memory) return ""; // it needs to be fix
+    const memory = contextMap.get(telegramUsername) ?? [];
 
     try {
 
@@ -32,7 +33,7 @@ export async function runLoop(content: string,chatId:number): Promise<string> {
           
             const llmResponse = await ollamaAi(memory);
             console.dir(llmResponse.message, { depth: null, color: true })
-
+            console.log('from agent loop')
             const tools = llmResponse.message.tool_calls;
 
             if (tools) {
@@ -41,7 +42,7 @@ export async function runLoop(content: string,chatId:number): Promise<string> {
                         try {
                             const args = tool.function.arguments;
                             const streamData: CreateStreamInput = <CreateStreamInput>args
-                            const response = await Tools.createStream(streamData);
+                            const response = await Tools.createStream(streamData,userPayload.jwt_token);
                             memory.push({ role: 'tool',tool_name:tool.function.name, content: response.streamId })
                         } catch (error) {
                             if (error instanceof CustomError) {
@@ -49,14 +50,12 @@ export async function runLoop(content: string,chatId:number): Promise<string> {
                             }
                         }
                     }
-                    contextMap.set(chatId,memory)
+                    contextMap.set(telegramUsername,memory)
                 }
             } else {
                 const llmMessage = llmResponse.message;
                 memory.push(llmMessage)
-                contextMap.set(chatId,memory)
-                log_data(contextMap)
-
+                contextMap.set(telegramUsername,memory)
                 return llmResponse.message.content
             }
 

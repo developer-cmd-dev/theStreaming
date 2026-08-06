@@ -11,6 +11,8 @@ const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY as string;
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
     const token = req.headers.authorization;
     let { refresh_token } = req.cookies;
+
+    console.log(token)
     try {
         // if (refresh_token) {
         //   <jwt.UserJwtPayload>jwt.verify(refresh_token, JWT_SECRET_KEY);
@@ -22,11 +24,10 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
                     req.username = verify.username
                     next()
                 }
+            }else{
+                res.status(401).json({message:"Invalid Authentication Token",statusCode:401,success:false});
             }
-        // }else {
-        //     res.status(401).json({ message: "No refresh token provided" });
-       
-        // }
+    
     } catch (error) {
         if (error instanceof JsonWebTokenError) {
             throw new CustomError(`Unauthorized:${error.message}`, 401);

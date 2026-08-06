@@ -3,7 +3,7 @@ import express, { response, type Request, type Response } from 'express';
 import redisClient from '@repo/redis/redisClient';
 import Bot from './bot/telegramBot';
 import { prisma } from '../../../packages/db';
-import { runLoop } from './agent_loop/agentloop';
+import { agentLoop } from './agent_loop/agentloop';
 import { log_data } from './console/console';
 import { axiosHandler, type AxiosPayload } from '@repo/axios';
 import { CustomError } from '@repo/customError';
@@ -88,9 +88,11 @@ app.post('/webhook', async (req, res) => {
         }
 
 
-        const checkUserInCache = await redisClient.hget(username,"user");
+        const userInCache = await redisClient.hget(username,"user");
 
-        if (!checkUserInCache && typeof checkUserInCache === 'object') {
+        
+
+        if (!userInCache && typeof userInCache === 'object') {
 
             const message = "Unauthorized User. You have to enter 8 digit Connection Id."
 
@@ -101,9 +103,12 @@ app.post('/webhook', async (req, res) => {
 
         } else {
 
+            const userPayload:UserAuth = JSON.parse(userInCache);
+            
+
             Bot.sendChatAction(chatId, "typing")
-            const response = await runLoop(message, chatId);
-            const formatedText = formateForTelegramBotMessage(response)
+            const response = await agentLoop(message, userPayload);
+            const formatedText = formateForTelegramBotMessage(response).trim()
             Bot.sendMessages({ chat_id: chatId, text: formatedText, parse_mode: "HTML" })
             res.sendStatus(200)
 
@@ -141,7 +146,7 @@ function formateForTelegramBotMessage(message: string): string {
 }
 
 
-interface UserAuth{
+export interface UserAuth{
     telegramUsername:string,
     agentConnectionId: number,
     userId: string,

@@ -28,19 +28,28 @@ export async function connectToTheAIagent(req: Request, res: Response) {
             userId: user.id,
             username: user.username
         }
+        const agentConnection =await prisma.agentConnection.findFirst({
+            where:{
+                userId:id
+            }
+        })
+
+        if(agentConnection){
+            const response = {
+                qrCode,
+                connectionId:agentConnection.connection_id,
+                botLink: url
+            }
+            HttpResponse.success(res, response);
+            return
+        }
+
+
 
         const jwtToken = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '30d' });
 
         const connectionId = Math.floor(10000000 + Math.random() * 90000000)
-        await prisma.agentConnection.create({
-            data: {
-                connection_id: connectionId,
-                jwt_token: jwtToken,
-                userId: id
-            }
-        })
-
-
+ 
         const response = {
             qrCode,
             connectionId,
@@ -48,6 +57,8 @@ export async function connectToTheAIagent(req: Request, res: Response) {
         }
         HttpResponse.success(res, response)
     } catch (error) {
+
+        console.log(error)
         if(error instanceof CustomError){
             throw new CustomError(error.message,error.statusCode);
         }

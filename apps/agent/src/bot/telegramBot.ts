@@ -29,18 +29,17 @@ export default class Bot {
             throw Error("Ivalid BOT token");
         }
 
+
         const url = `https://api.telegram.org/bot${this.BOT_TOKEN}/sendMessage`;
 
         try {
             const response = await axios.post(url, content);
             return response.data
         } catch (error) {
-           if(error instanceof AxiosError){
-            const message  = error.response?.data ? error.request.data.message : "Something went wrong";
-            const statusCode = error.response?.data ? error.response.data.statusCdoe : 500;
-            throw new CustomError(message,statusCode)
-           }
-           throw new CustomError("Unexptected Error",500)
+            if(error instanceof AxiosError){
+                console.log(error.response?.data,'rom telegram bot')
+            }
+           throw new CustomError("Something went wrong",500)
         }
 
 
