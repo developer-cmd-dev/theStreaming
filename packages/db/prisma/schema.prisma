@@ -142,7 +142,7 @@ model UserContextData {
   content   String
   username  String?
   tool_name String?
-  aiAgentBotId String @unique
+  aiAgentBotId String
   aiAgentBot AI_Agent_Bot @relation(fields: [aiAgentBotId],references: [id])
   createdAt DateTime @default(now())
 }

@@ -8,6 +8,7 @@ import { log_data } from './console/console';
 import { axiosHandler, type AxiosPayload } from '@repo/axios';
 import { CustomError } from '@repo/customError';
 import { isNumericLiteral } from 'typescript';
+import { contextMemory } from './agent/contextMemory';
 
 
 const app = express();
@@ -104,8 +105,7 @@ app.post('/webhook', async (req, res) => {
         } else {
 
             const userPayload:UserAuth = JSON.parse(userInCache);
-            
-
+            contextMemory.setActiveUser(userPayload);
             Bot.sendChatAction(chatId, "typing")
             const response = await agentLoop(message, userPayload);
             const formatedText = formateForTelegramBotMessage(response).trim()

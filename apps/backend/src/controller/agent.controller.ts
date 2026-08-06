@@ -151,15 +151,13 @@ export async function saveAgentChats(req:Request,res:Response) {
         const records = contextData.map((item: any) => ({
             role: item.role,
             content: item.content,
-            username: item.username ?? null,
+            username: username?? null,
             tool_name: item.tool_name ?? null,
             aiAgentBotId: aiAgentBot.id
         }));
 
-        // Save all context data to UserContextData
         const saved = await prisma.userContextData.createMany({
             data: records,
-            skipDuplicates: true // in case of duplicate unique constraints!
         });
 
         HttpResponse.success(res, { success: true, count: saved.count });

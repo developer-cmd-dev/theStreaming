@@ -27,7 +27,6 @@ export async function agentLoop(content: string,userPayload:UserAuth): Promise<s
     // }
 
     const memory = contextMemory.setMemory(telegramUsername,{role:"user",content})
-    console.log(memory)
     try {
 
         while (true) {
