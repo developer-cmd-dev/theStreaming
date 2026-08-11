@@ -1,0 +1,46 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "create stream",
+      "description": "create a stream using http server of TheStreaming streaming application for the streamer",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "thumbnail": {
+            "type": "string"
+          },
+          "subscriberOnly": {
+            "type": "boolean"
+          }
+        },
+        "required": ["title", "description"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "schedule streams",
+      "description": "Schedule the stream in cron job into theStreaming http server",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "streamId": {
+            "type": "string"
+          },
+          "targetTime": {
+            "type": "string"
+          }
+        },
+        "required": ["streamId", "targetTime"]
+      }
+    }
+  }
+]

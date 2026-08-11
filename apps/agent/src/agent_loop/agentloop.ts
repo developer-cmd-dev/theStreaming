@@ -11,55 +11,78 @@ import { contextMemory } from "../agent/contextMemory";
 
 
 
-let contextMap = new Map<string,Message[]>();
 
-export async function agentLoop(content: string,userPayload:UserAuth): Promise<string> {
+
+export async function agentLoop(content: string, userPayload: UserAuth): Promise<string> {
 
     const telegramUsername = userPayload.telegramUsername
-    // const checkUserContext = contextMap.has(telegramUsername);
 
-    // if(!checkUserContext){
-    //     contextMap.set(telegramUsername,[{role:"user",content}])
-    // }else if(checkUserContext){
-    //     const prevContext = contextMap.get(telegramUsername);
-    //     prevContext?.push({role:"user",content});
-    //     contextMap.set(telegramUsername,prevContext??[]);
-    // }
 
-    const memory = contextMemory.setMemory(telegramUsername,{role:"user",content})
+    let memory = contextMemory.setMemory(telegramUsername, { role: "user", content })
     try {
 
-        while (true) {
-          
+
+        const maxIteration = 10;
+        let iteration = 0;
+        while (iteration <= maxIteration) {
+            iteration++;
             const llmResponse = await ollamaAi(memory);
             const tools = llmResponse.message.tool_calls;
-
             if (tools) {
                 for (const tool of tools) {
-                    if (tool.function.name === 'create stream') {
-                        try {
-                            const args = tool.function.arguments;
-                            const streamData: CreateStreamInput = <CreateStreamInput>args
-                            const response = await Tools.createStream(streamData,userPayload.jwt_token);
-                            const content = { role: 'tool',tool_name:tool.function.name, content: response.streamId }
-                                contextMemory.setMemory(telegramUsername,content)
-                        } catch (error) {
-                            if (error instanceof CustomError) {
-                                const content = { role: "assistant",tool_name:tool.function.name ,content: `Error came when http tool calling with status code-${error.statusCode} and message - ${error.message} ` }
-                                contextMemory.setMemory(telegramUsername,content)
-                                
+                    // TODO: Only declared/implemented tools should be handled here. If more tools are exposed in ollama.ts, add handlers for them or remove them from the schema.
+
+                    switch (tool.function.name) {
+                        case 'create stream': (async () => {
+                            try {
+                                const args = tool.function.arguments;
+                                const streamData: CreateStreamInput = <CreateStreamInput>args
+                                const response = await Tools.createStream(streamData, userPayload.jwt_token);
+                               
+                                const content: Message = { role: 'tool', tool_name: tool.function.name, content: response.streamId }
+                                memory = contextMemory.setMemory(telegramUsername, content)
+                            } catch (error) {
+                                if (error instanceof CustomError) {
+                                    const content = { role: "assistant", tool_name: tool.function.name, content: `Error came when http tool calling with status code-${error.statusCode} and message - ${error.message} ` }
+                                    memory = contextMemory.setMemory(telegramUsername, content)
+                                }
                             }
+                        })()
+                            break;
+                        case 'schedule streams': async () => {
+
                         }
+                            break
                     }
-                    contextMap.set(telegramUsername,memory)
+
+
+                    // if (tool.function.name === 'create stream') {
+                    //     try {
+                    //         const args = tool.function.arguments;
+                    //         const streamData: CreateStreamInput = <CreateStreamInput>args
+                    //         const response = await Tools.createStream(streamData, userPayload.jwt_token);
+                    //         // TODO: Verify this tool-response message shape matches Ollama's expected tool-call return format; missing linkage/structure can make tool results unreliable.
+                    //         const content:Message = { role: 'tool', tool_name: tool.function.name, content: response.streamId }
+                    //         memory = contextMemory.setMemory(telegramUsername, content)
+                    //     } catch (error) {
+                    //         if (error instanceof CustomError) {
+                    //             const content = { role: "assistant", tool_name: tool.function.name, content: `Error came when http tool calling with status code-${error.statusCode} and message - ${error.message} ` }
+                    //             memory = contextMemory.setMemory(telegramUsername, content)
+                    //         }
+                    //     }
+                    // }
                 }
             } else {
                 const llmMessage = llmResponse.message;
-                contextMemory.setMemory(telegramUsername,llmMessage)
+                memory = contextMemory.setMemory(telegramUsername, llmMessage)
+                iteration = 0;
                 return llmResponse.message.content
             }
 
         }
+
+        throw new CustomError("Iteration Limit Exceeded", 500)
+
 
     } catch (error) {
         throw error
@@ -69,8 +92,8 @@ export async function agentLoop(content: string,userPayload:UserAuth): Promise<s
 }
 
 
-async function userContext(content:string,chatId:number) {
-    
+async function userContext(content: string, chatId: number) {
+
 }
 
 

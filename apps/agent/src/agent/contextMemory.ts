@@ -16,6 +16,7 @@ class ContextMemory {
     private contextMap = new Map<string, Message[]>()
     private HTTP_URL = process.env.HTTP_SERVER_URL ?? ""
     private activeUser = new Map<string, UserAuth>()
+    // TODO: This single timer is shared across all users. Replace with per-user timers (e.g. Map<string, NodeJS.Timeout>) so one user's activity does not cancel another user's persistence timer.
     private timer: NodeJS.Timeout | null = null;
 
     setActiveUser(data: UserAuth) {
@@ -44,6 +45,7 @@ class ContextMemory {
         const userContext = this.contextMap.get(key);
         if (!userContext || userContext.length === 0) return;
 
+        // TODO: This clears/reuses one global timer. Make this key-specific to avoid cross-user race conditions.
         if(this.timer) clearTimeout(this.timer)
         this.timer = setTimeout(async () => {
             const currentContext = this.contextMap.get(key);
@@ -56,6 +58,7 @@ class ContextMemory {
                     console.error(`Failed to persist context for ${key}:`, e);
                     return;
                 }
+                // TODO: Be careful clearing memory immediately after save; if new messages arrive around this time, you can lose fresh context. Consider checking for newer messages/versioning before delete.
                 this.contextMap.delete(key);
                 this.activeUser.delete(key);
             }

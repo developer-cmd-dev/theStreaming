@@ -52,6 +52,7 @@ app.post('/webhook', async (req, res) => {
         }
 
 
+        // TODO: This is broad; any reply can enter auth flow. Check that the replied message is specifically the connection-id prompt, or track an explicit auth state.
         if (payload.message?.reply_to_message) {
             const connectionId = payload.message.text;
 
@@ -93,6 +94,7 @@ app.post('/webhook', async (req, res) => {
 
         
 
+        // TODO: Simplify/fix this auth check. hget usually returns string | null, so a plain `if (!userInCache)` is clearer and less fragile.
         if (!userInCache && typeof userInCache === 'object') {
 
             const message = "Unauthorized User. You have to enter 8 digit Connection Id."
@@ -104,9 +106,11 @@ app.post('/webhook', async (req, res) => {
 
         } else {
 
+            // TODO: Consider using stable Telegram user/chat id as the session key instead of username alone; usernames can change or be absent.
             const userPayload:UserAuth = JSON.parse(userInCache);
             contextMemory.setActiveUser(userPayload);
             Bot.sendChatAction(chatId, "typing")
+            // TODO: Protect against duplicate Telegram webhook deliveries so create actions (like stream creation) are not executed twice.
             const response = await agentLoop(message, userPayload);
             const formatedText = formateForTelegramBotMessage(response).trim()
             Bot.sendMessages({ chat_id: chatId, text: formatedText, parse_mode: "HTML" })

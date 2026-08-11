@@ -1,80 +1,33 @@
 
-import {Ollama, type ChatResponse, type Message} from "ollama"
-
+import { Ollama, type ChatResponse, type Message, type Tool } from "ollama"
+import toolsData from './ollama-tools.json'
 
 const client = new Ollama({
+    // TODO: Move this host to env config instead of hardcoding it.
     host: "http://127.0.0.1:11434",
-  });
+});
 
-export async function ollamaAi(content:Message[]):Promise<ChatResponse> {
+export async function ollamaAi(content: Message[]): Promise<ChatResponse> {
 
 
-  try {
+    try {
         const response = await client.chat({
             model: 'qwen3:8b',
-            messages: [{role:'system',content:systemPrompt},...content],
-            think:false,
-            tools:[
-                {
-                    type:'function',
-                    function:{
-                        name:"create stream",
-                        description:"create a stream using http server of TheStreaming streaming application for the streamer",
-                        parameters: {
-                            type: "object",
-                            properties: {
-                                title: {
-                                    type:"string",
-                                },
-                                description: {
-                                    type: "string",
-                                },
-                                thumbnail: {
-                                    type: "string",
-                                },
-                                subscriberOnly: {
-                                    type: "boolean",
-                                },
-                                isLive: {
-                                    type: "boolean",
-                                },
-                            },
-                            required: ['title', "description"]
-                        }
-                    }
-                },
-                {
-                    type:'function',
-                    function:{
-                        name:"schedule streams",
-                        description:"Schedule the stream in cron job into theStreaming http server",
-                        parameters: {
-                            type: "object",
-                            properties: {
-                                streamId: {
-                                    type:"string",
-                                },
-                                targetTime: {
-                                    type: "string",
-                                },
-                               
-                            },
-                            required: ['streamId', "targetTime"]
-                        }
-                    }
-                }
-            ]
+
+            messages: [{ role: 'system', content: systemPrompt }, ...content],
+            think: false,
+            tools: toolsData as any
         })
 
         return response
 
     } catch (error) {
-        console.dir(error,{depth:null}) 
-        throw error   
+        console.dir(error, { depth: null })
+        throw error
     }
 
 
-    
+
 }
 
 
