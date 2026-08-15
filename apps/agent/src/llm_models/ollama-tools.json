@@ -2,7 +2,7 @@
   {
     "type": "function",
     "function": {
-      "name": "create stream",
+      "name": "create_stream",
       "description": "create a stream using http server of TheStreaming streaming application for the streamer",
       "parameters": {
         "type": "object",
@@ -27,7 +27,7 @@
   {
     "type": "function",
     "function": {
-      "name": "schedule streams",
+      "name": "schedule_streams",
       "description": "Schedule the stream in cron job into theStreaming http server",
       "parameters": {
         "type": "object",

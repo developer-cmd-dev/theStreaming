@@ -12,7 +12,6 @@ import { contextMemory } from "../agent/contextMemory";
 
 
 
-
 export async function agentLoop(content: string, userPayload: UserAuth): Promise<string> {
 
     const telegramUsername = userPayload.telegramUsername
@@ -33,12 +32,11 @@ export async function agentLoop(content: string, userPayload: UserAuth): Promise
                     // TODO: Only declared/implemented tools should be handled here. If more tools are exposed in ollama.ts, add handlers for them or remove them from the schema.
 
                     switch (tool.function.name) {
-                        case 'create stream': (async () => {
+                        case 'create_stream': (async () => {
                             try {
                                 const args = tool.function.arguments;
                                 const streamData: CreateStreamInput = <CreateStreamInput>args
                                 const response = await Tools.createStream(streamData, userPayload.jwt_token);
-                               
                                 const content: Message = { role: 'tool', tool_name: tool.function.name, content: response.streamId }
                                 memory = contextMemory.setMemory(telegramUsername, content)
                             } catch (error) {
@@ -49,33 +47,19 @@ export async function agentLoop(content: string, userPayload: UserAuth): Promise
                             }
                         })()
                             break;
-                        case 'schedule streams': async () => {
+                        case 'schedule_streams': async () => {
 
                         }
                             break
                     }
 
 
-                    // if (tool.function.name === 'create stream') {
-                    //     try {
-                    //         const args = tool.function.arguments;
-                    //         const streamData: CreateStreamInput = <CreateStreamInput>args
-                    //         const response = await Tools.createStream(streamData, userPayload.jwt_token);
-                    //         // TODO: Verify this tool-response message shape matches Ollama's expected tool-call return format; missing linkage/structure can make tool results unreliable.
-                    //         const content:Message = { role: 'tool', tool_name: tool.function.name, content: response.streamId }
-                    //         memory = contextMemory.setMemory(telegramUsername, content)
-                    //     } catch (error) {
-                    //         if (error instanceof CustomError) {
-                    //             const content = { role: "assistant", tool_name: tool.function.name, content: `Error came when http tool calling with status code-${error.statusCode} and message - ${error.message} ` }
-                    //             memory = contextMemory.setMemory(telegramUsername, content)
-                    //         }
-                    //     }
-                    // }
+                
                 }
             } else {
                 const llmMessage = llmResponse.message;
                 memory = contextMemory.setMemory(telegramUsername, llmMessage)
-                iteration = 0;
+                iteration=0;
                 return llmResponse.message.content
             }
 

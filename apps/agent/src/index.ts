@@ -7,7 +7,7 @@ import { agentLoop } from './agent_loop/agentloop';
 import { log_data } from './console/console';
 import { axiosHandler, type AxiosPayload } from '@repo/axios';
 import { CustomError } from '@repo/customError';
-import { isNumericLiteral } from 'typescript';
+import { isNumericLiteral, isParenthesizedTypeNode } from 'typescript';
 import { contextMemory } from './agent/contextMemory';
 
 
@@ -27,9 +27,12 @@ app.post('/webhook', async (req, res) => {
         return
     }
 
+    
+
     const username = payload.message?.chat.username;
     const chatId = payload.message?.chat.id;
     const message = payload.message?.text
+
     if (!chatId || !message) {
         res.sendStatus(200);
         return
@@ -51,9 +54,17 @@ app.post('/webhook', async (req, res) => {
             }
         }
 
+        if(payload.message?.text ==='/login'){
+            const message = "Enter Connection Id"
 
-        // TODO: This is broad; any reply can enter auth flow. Check that the replied message is specifically the connection-id prompt, or track an explicit auth state.
-        if (payload.message?.reply_to_message) {
+            Bot.sendReplyMarkupMessage({ message, chatId, input_field_placeholder: "Enter Connection Id" })
+            res.sendStatus(200)
+            return;
+        }
+
+
+ 
+        if (payload.message?.reply_to_message?.text === "Enter Connection Id") {
             const connectionId = payload.message.text;
 
 
@@ -91,26 +102,26 @@ app.post('/webhook', async (req, res) => {
 
 
         const userInCache = await redisClient.hget(username,"user");
-
         
 
         // TODO: Simplify/fix this auth check. hget usually returns string | null, so a plain `if (!userInCache)` is clearer and less fragile.
         if (!userInCache && typeof userInCache === 'object') {
-
-            const message = "Unauthorized User. You have to enter 8 digit Connection Id."
-
-            Bot.sendReplyMarkupMessage({ message, chatId, input_field_placeholder: "Enter Connection Id" })
+            const message = formateForTelegramBotMessage("Type /login to Authenticate.").trim()
+            Bot.sendMessages({ text:message, chat_id:chatId,})
             res.sendStatus(200)
             return;
-
-
         } else {
 
-            // TODO: Consider using stable Telegram user/chat id as the session key instead of username alone; usernames can change or be absent.
-            const userPayload:UserAuth = JSON.parse(userInCache);
+            const userPayload: UserAuth = JSON.parse(userInCache);
             contextMemory.setActiveUser(userPayload);
             Bot.sendChatAction(chatId, "typing")
             // TODO: Protect against duplicate Telegram webhook deliveries so create actions (like stream creation) are not executed twice.
+            // Explanation: Telegram may sometimes deliver the same webhook multiple times for a single user message,
+            // especially in cases of network retries or delays. If this endpoint does not detect and ignore repeated messages,
+            // state-changing actions (such as stream creation, or other idempotent operations) might get executed more than once,
+            // leading to duplicated streams or unintended side effects. 
+            // To resolve this, you should implement deduplication logic—track message IDs or a hash of incoming requests,
+            // and ignore/process only the first delivery of each unique message.
             const response = await agentLoop(message, userPayload);
             const formatedText = formateForTelegramBotMessage(response).trim()
             Bot.sendMessages({ chat_id: chatId, text: formatedText, parse_mode: "HTML" })

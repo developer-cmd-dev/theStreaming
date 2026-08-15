@@ -50,6 +50,13 @@ export async function connectToTheAIagent(req: Request, res: Response) {
 
         const connectionId = Math.floor(10000000 + Math.random() * 90000000)
  
+       await prisma.agentConnection.create({
+            data:{
+             jwt_token:jwtToken,
+             connection_id:connectionId,
+             userId:id
+            }
+         })
         const response = {
             qrCode,
             connectionId,
