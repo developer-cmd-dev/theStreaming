@@ -1,168 +1,176 @@
-"use client"
-import axios, { AxiosError } from "axios";
-import { useRef } from "react";
-import { type HttpResponse } from '../node_modules/@repo/zod/index';
-import { Button } from "@/components/ui/button";
-import Sidebar from "@/components/sidebar";
-import Navbar from "@/components/navbar";
-export default function Page() {
+"use client";
 
-  const locationVideoRef = useRef<HTMLVideoElement | null>(null);
+import { useEffect, useState } from "react";
+import {
+  featuredCreators,
+  popularCategories,
+  recentlyWatched,
+  recommendedStreams,
+  topCategories,
+  trendingStreams,
+} from "@/lib/mock-data";
+import CategorySection from "@/components/streaming/CategorySection";
+import CreatorCard from "@/components/streaming/CreatorCard";
+import FeaturedStream from "@/components/streaming/FeaturedStream";
+import LiveChat from "@/components/streaming/LiveChat";
+import MobileNavigation from "@/components/streaming/MobileNavigation";
+import Navbar from "@/components/streaming/Navbar";
+import SectionHeader from "@/components/streaming/SectionHeader";
+import Sidebar from "@/components/streaming/Sidebar";
+import { StreamCardSkeleton } from "@/components/streaming/Skeleton";
+import StreamCard from "@/components/streaming/StreamCard";
 
-  const recieverVideoRef = useRef<HTMLVideoElement | null>(null);
-
-  const peerConnection = useRef<RTCPeerConnection | null>(null);
-  const mediaStream = useRef<MediaStream | null>(null)
-
-
-  async function goLive() {
-
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      if (!stream) mediaStream.current = stream;
-      const pc = new RTCPeerConnection();
-      stream.getTracks().forEach(tracks => {
-        pc.addTrack(tracks, stream)
-      })
-
-
-      const videoTransceiver = pc
-        .getTransceivers()
-        .find((t) => t.sender.track?.kind === "video");
-
-      const capabilities =
-        RTCRtpSender.getCapabilities("video");
-
-      const h264Codecs = capabilities?.codecs.filter(
-        (codec) => codec.mimeType === "video/H264"
-      );
-
-      if (videoTransceiver && h264Codecs?.length) {
-        videoTransceiver.setCodecPreferences(h264Codecs);
-      }
-
-      if (locationVideoRef.current) {
-        locationVideoRef.current.srcObject = stream;
-        await locationVideoRef.current.play();
-      }
-
-      const offer = await pc.createOffer();
-
-      pc.setLocalDescription(offer)
-
-      const response = await axios.post("http://localhost:3000/api/v1/connect-media-server",
-        {
-          sdp: offer.sdp,
-          type: "offer",
-          streamId: "c6c10609-0c33-4768-a589-0a9256a33daf"
-        }
-        ,
-        {
-          headers: {
-            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhN2U2ODY4ZS05OTlhLTRjNDctYjNkYy1hMmI1OTZiMmM2NTgiLCJ1c2VybmFtZSI6ImphbmVfZG9lIiwiaWF0IjoxNzg0MTI5ODY4LCJleHAiOjE3ODQxNDA2Njh9.dW2poWzJq8BDDRyjoDb8muIjiXD1CzNcCCV7Vxv_TL8"
-          }
-        }
-      );
-
-      const result = response.data as HttpResponse
-
-
-      pc.oniceconnectionstatechange = () => {
-        console.log("ICE:", pc.iceConnectionState);
-      };
-
-      pc.onconnectionstatechange = () => {
-        console.log("Connection:", pc.connectionState);
-      };
-
-      await pc.setRemoteDescription({
-        type: 'answer',
-        sdp: result.data.sdpAnswer
-      })
-
-      peerConnection.current = pc;
-      const recordingResponse = await axios.get("http://localhost:8080/api/v1/record-streaming/c6c10609-0c33-4768-a589-0a9256a33daf",)
-      console.log(recordingResponse.data)
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        console.log(error.response?.data)
-      }
-    }
-
-
-
+function StreamGrid({
+  streams,
+  loading,
+}: {
+  streams: typeof recommendedStreams;
+  loading: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <StreamCardSkeleton key={i} />
+        ))}
+      </div>
+    );
   }
-
-
-  async function joinLive() {
-
-    try {
-
-      const pc = new RTCPeerConnection();
-
-      pc.addTransceiver("video", { direction: "recvonly" });
-      pc.addTransceiver("audio", { direction: "recvonly" });
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer)
-
-
-
-
-      const response = await axios.post(
-        "http://localhost:8889/live/c6c10609-0c33-4768-a589-0a9256a33daf/whep",
-        offer.sdp,
-        {
-          headers: {
-            "Content-Type": "application/sdp",
-          },
-        }
-      );
-
-      pc.setRemoteDescription({
-        type: "answer",
-        sdp: response.data
-      });
-
-      pc.ontrack = async (event) => {
-        const stream = event.streams[0];
-
-        if (recieverVideoRef.current) {
-          recieverVideoRef.current.srcObject = stream ?? null;
-          await recieverVideoRef.current.play()
-        }
-      }
-    } catch (error) {
-      console.log(error)
-    }
-
-  }
-
-
-  async function endStream() {
-    const pc = peerConnection.current;
-    console.log(pc)
-    if (pc) {
-      axios.post("http://localhost:3000/api/v1/end-stream/c6c10609-0c33-4768-a589-0a9256a33daf",);
-      pc.close();
-      mediaStream.current?.getTracks().forEach((track) => {
-        track.stop()
-      })
-
-
-    }
-  }
-
-
-
-
 
   return (
-    <main className="z-10 w-full  ">
-
-      <Navbar/>
-      {/* <Sidebar/> */}
-
-    </main>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {streams.map((stream) => (
+        <StreamCard key={stream.id} stream={stream} />
+      ))}
+    </div>
   );
 }
+
+
+
+export default function Dashboard() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileTab, setMobileTab] = useState<"home" | "browse" | "following" | "chat">("home");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleMenuToggle = () => {
+    if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+      setSidebarCollapsed((prev) => !prev);
+    } else {
+      setSidebarOpen((prev) => !prev);
+    }
+  };
+
+  const isHome = mobileTab === "home";
+  const isBrowse = mobileTab === "browse";
+  const isFollowing = mobileTab === "following";
+  const isChat = mobileTab === "chat";
+
+  return (
+    <div className="flex h-dvh flex-col overflow-hidden bg-background ">
+
+
+
+      <Navbar
+        sidebarOpen={sidebarOpen}
+        onMenuToggle={handleMenuToggle}
+      />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar
+          open={sidebarOpen}
+          collapsed={sidebarCollapsed}
+          onClose={() => setSidebarOpen(true)}
+        />
+
+        <main className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto pb-20 lg:pb-6">
+            {(isHome || isChat) && (
+              <div className="p-4 sm:p-5 lg:p-6">
+                {isHome && (
+                  <div className="flex flex-col gap-4 xl:flex-row xl:gap-5">
+                    <div className="min-w-0 flex-1">
+                      <FeaturedStream />
+                    </div>
+                    <div className="hidden xl:block xl:w-80 xl:shrink-0 2xl:w-90">
+                      <div className="h-full min-h-80 xl:min-h-100">
+                        <LiveChat />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {isChat && (
+                  <div className="block h-[calc(100dvh-8rem)] lg:hidden">
+                    <LiveChat />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isHome && (
+              <div className="space-y-8 px-4 pb-6 sm:px-5 lg:px-6">
+                <CategorySection categories={topCategories} />
+
+                <section>
+                  <SectionHeader title="Recommended Streams" />
+                  <StreamGrid streams={recommendedStreams} loading={loading} />
+                </section>
+
+                <section>
+                  <SectionHeader title="Trending Now" />
+                  <StreamGrid streams={trendingStreams} loading={loading} />
+                </section>
+
+                <section>
+                  <SectionHeader title="Recently Watched" />
+                  <StreamGrid streams={recentlyWatched} loading={loading} />
+                </section>
+
+                <CategorySection
+                  title="Popular Categories"
+                  categories={popularCategories}
+                  actionLabel="Browse all"
+                />
+
+                <section>
+                  <SectionHeader title="Featured Creators" />
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                    {featuredCreators.map((creator) => (
+                      <CreatorCard key={creator.id} creator={creator} />
+                    ))}
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {isBrowse && (
+              <div className="px-4 pb-6 sm:px-5 lg:px-6">
+                <CategorySection
+                  title="Browse Categories"
+                  categories={topCategories}
+                />
+              </div>
+            )}
+
+            {isFollowing && (
+              <div className="px-4 pb-6 sm:px-5 lg:px-6">
+                <SectionHeader title="Channels You Follow" />
+                <StreamGrid streams={trendingStreams.slice(0, 4)} loading={loading} />
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+
+      <MobileNavigation activeTab={mobileTab} onTabChange={setMobileTab} />
+    </div>
+  );
+}
+
+
