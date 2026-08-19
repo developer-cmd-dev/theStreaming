@@ -49,23 +49,8 @@ function StreamGrid({
 
 
 export default function Dashboard() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileTab, setMobileTab] = useState<"home" | "browse" | "following" | "chat">("home");
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleMenuToggle = () => {
-    if (typeof window !== "undefined" && window.innerWidth >= 1024) {
-      setSidebarCollapsed((prev) => !prev);
-    } else {
-      setSidebarOpen((prev) => !prev);
-    }
-  };
 
   const isHome = mobileTab === "home";
   const isBrowse = mobileTab === "browse";
@@ -73,103 +58,68 @@ export default function Dashboard() {
   const isChat = mobileTab === "chat";
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-background ">
-
-
-
-      <Navbar
-        sidebarOpen={sidebarOpen}
-        onMenuToggle={handleMenuToggle}
-      />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          open={sidebarOpen}
-          collapsed={sidebarCollapsed}
-          onClose={() => setSidebarOpen(true)}
-        />
-
-        <main className="flex flex-1 flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto pb-20 lg:pb-6">
-            {(isHome || isChat) && (
-              <div className="p-4 sm:p-5 lg:p-6">
-                {isHome && (
-                  <div className="flex flex-col gap-4 xl:flex-row xl:gap-5">
-                    <div className="min-w-0 flex-1">
-                      <FeaturedStream />
-                    </div>
-                    <div className="hidden xl:block xl:w-80 xl:shrink-0 2xl:w-90">
-                      <div className="h-full min-h-80 xl:min-h-100">
-                        <LiveChat />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {isChat && (
-                  <div className="block h-[calc(100dvh-8rem)] lg:hidden">
+      <div className="flex-1 overflow-y-auto pb-20 lg:pb-6">
+        {(isHome || isChat) && (
+          <div className="p-4 sm:p-5 lg:p-6 ">
+            {isHome && (
+              <div className="flex flex-col gap-4 xl:flex-row xl:gap-5">
+                <div className="min-w-0 flex-1">
+                  <FeaturedStream />
+                </div>
+                <div className="hidden xl:block xl:w-80 xl:shrink-0 2xl:w-90">
+                  <div className="h-full min-h-80 xl:min-h-100">
                     <LiveChat />
                   </div>
-                )}
+                </div>
               </div>
             )}
 
-            {isHome && (
-              <div className="space-y-8 px-4 pb-6 sm:px-5 lg:px-6">
-                <CategorySection categories={topCategories} />
-
-                <section>
-                  <SectionHeader title="Recommended Streams" />
-                  <StreamGrid streams={recommendedStreams} loading={loading} />
-                </section>
-
-                <section>
-                  <SectionHeader title="Trending Now" />
-                  <StreamGrid streams={trendingStreams} loading={loading} />
-                </section>
-
-                <section>
-                  <SectionHeader title="Recently Watched" />
-                  <StreamGrid streams={recentlyWatched} loading={loading} />
-                </section>
-
-                <CategorySection
-                  title="Popular Categories"
-                  categories={popularCategories}
-                  actionLabel="Browse all"
-                />
-
-                <section>
-                  <SectionHeader title="Featured Creators" />
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                    {featuredCreators.map((creator) => (
-                      <CreatorCard key={creator.id} creator={creator} />
-                    ))}
-                  </div>
-                </section>
-              </div>
-            )}
-
-            {isBrowse && (
-              <div className="px-4 pb-6 sm:px-5 lg:px-6">
-                <CategorySection
-                  title="Browse Categories"
-                  categories={topCategories}
-                />
-              </div>
-            )}
-
-            {isFollowing && (
-              <div className="px-4 pb-6 sm:px-5 lg:px-6">
-                <SectionHeader title="Channels You Follow" />
-                <StreamGrid streams={trendingStreams.slice(0, 4)} loading={loading} />
+            {isChat && (
+              <div className="block h-[calc(100dvh-8rem)] lg:hidden">
+                <LiveChat />
               </div>
             )}
           </div>
-        </main>
-      </div>
+        )}
 
-      <MobileNavigation activeTab={mobileTab} onTabChange={setMobileTab} />
-    </div>
+         {isHome && (
+          <div className="space-y-8 px-4 pb-6 sm:px-5 lg:px-6">
+            <CategorySection categories={topCategories} />
+
+            <section>
+              <SectionHeader title="Recommended Streams" />
+              <StreamGrid streams={recommendedStreams} loading={loading} />
+            </section>
+
+            <section>
+              <SectionHeader title="Trending Now" />
+              <StreamGrid streams={trendingStreams} loading={loading} />
+            </section>
+
+            <section>
+              <SectionHeader title="Recently Watched" />
+              <StreamGrid streams={recentlyWatched} loading={loading} />
+            </section>
+
+            <CategorySection
+              title="Popular Categories"
+              categories={popularCategories}
+              actionLabel="Browse all"
+            />
+
+            <section>
+              <SectionHeader title="Featured Creators" />
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                {featuredCreators.map((creator) => (
+                  <CreatorCard key={creator.id} creator={creator} />
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
+
+
+      </div>
   );
 }
 

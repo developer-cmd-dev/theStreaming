@@ -7,12 +7,16 @@ import {
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import RecommendedChannels from "./RecommendedChannels";
+import { useState } from "react";
+import Link from "next/link";
 
-const navItems = [
-  { id: "home", label: "Home", icon: IconHome, active: true },
-  { id: "browse", label: "Browse", icon: IconCompass, active: false },
-  { id: "following", label: "Following", icon: IconHeart, active: false },
+
+export const navItems = [
+  { id: "home" as const, label: "Home", icon: IconHome, href: "/" },
+  { id: "browse" as const, label: "Browse", icon: IconCompass, href: "/browse" },
+  { id: "following" as const, label: "Following", icon: IconHeart, href: "/following" },
 ];
+
 
 type SidebarProps = {
   open: boolean;
@@ -20,7 +24,13 @@ type SidebarProps = {
   onClose: () => void;
 };
 
+export type Tabs =  "home" | "browse" | "following" 
+
+
 export default function Sidebar({ open, collapsed, onClose }: SidebarProps) {
+
+  const [active,setActive]=useState<Tabs>("home")
+
   return (
     <>
       {open && (
@@ -40,13 +50,14 @@ export default function Sidebar({ open, collapsed, onClose }: SidebarProps) {
         )}
       >
         <nav className="flex flex-col gap-0.5 p-3">
-          {navItems.map(({ id, label, icon: Icon, active }) => (
-            <a
+          {navItems.map(({ id, label, icon: Icon, href }) => (
+            <Link
               key={id}
-              href="#"
+              href={href}
+              onClick={()=>setActive(id)}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                active
+                active === id
                   ? "bg-surface-elevated text-brand"
                   : "text-text-secondary hover:bg-surface hover:text-text-primary",
                 collapsed && "lg:justify-center lg:px-2",
@@ -57,7 +68,7 @@ export default function Sidebar({ open, collapsed, onClose }: SidebarProps) {
               <span className={cn("truncate", collapsed && "lg:hidden")}>
                 {label}
               </span>
-            </a>
+            </Link>
           ))}
         </nav>
 

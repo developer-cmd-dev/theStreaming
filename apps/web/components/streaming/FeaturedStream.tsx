@@ -31,7 +31,7 @@ export default function FeaturedStream() {
   const stream = featuredStreams[current];
 
   return (
-    <div className="relative">
+    <div className="relative ">
       <AnimatePresence mode="wait">
         <motion.div
           key={stream.id}
@@ -44,6 +44,7 @@ export default function FeaturedStream() {
           <Image
             src={stream.thumbnail}
             alt={stream.title}
+            
             fill
             priority
             className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
