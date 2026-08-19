@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import Navbar from './streaming/Navbar';
 import Sidebar from './streaming/Sidebar';
 import MobileNavigation from './streaming/MobileNavigation';
+import Dialog from './Dialog';
 
 function DashLayout({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,12 +28,17 @@ function DashLayout({ children }: { children: React.ReactNode }) {
 
     return (
 
-        <div className="flex h-dvh flex-col overflow-hidden bg-background ">
+     <>
+       
+       <Dialog/>
+   
+        <div className="flex relative h-dvh flex-col overflow-hidden bg-background ">
             <Navbar
                 sidebarOpen={sidebarOpen}
                 onMenuToggle={handleMenuToggle}
             />
-            <div className="flex flex-1 overflow-hidden">
+        
+            <div className="flex flex-1 overflow-hidden ">
                 <Sidebar
                     open={sidebarOpen}
                     collapsed={sidebarCollapsed}
@@ -45,6 +51,7 @@ function DashLayout({ children }: { children: React.ReactNode }) {
 
             <MobileNavigation />
         </div>
+     </>
 
     )
 }

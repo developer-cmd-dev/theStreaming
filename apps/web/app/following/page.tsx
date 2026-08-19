@@ -35,10 +35,10 @@ function StreamGrid({
 
 function Following() {
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   return (
-    <div className="px-4 pb-6 sm:px-5 lg:px-6">
+    <div className="p-4 pb-6 sm:px-5 lg:px-6">
     <SectionHeader title="Channels You Follow" />
     <StreamGrid streams={trendingStreams.slice(0, 4)} loading={loading} />
   </div>

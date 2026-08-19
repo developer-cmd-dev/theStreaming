@@ -8,6 +8,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { motion } from "motion/react";
+import Dialog from "../Dialog";
 
 type NavbarProps = {
   onMenuToggle: () => void;
