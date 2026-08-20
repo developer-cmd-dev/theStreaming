@@ -1,11 +1,13 @@
 "use client"
+import MobileNavigation from '@/components/streaming/MobileNavigation'
+import Navbar from '@/components/streaming/Navbar'
+import Sidebar from '@/components/streaming/Sidebar'
 import React, { useEffect, useState } from 'react'
-import Navbar from './streaming/Navbar';
-import Sidebar from './streaming/Sidebar';
-import MobileNavigation from './streaming/MobileNavigation';
-import Dialog from './Dialog';
 
 function DashLayout({ children }: { children: React.ReactNode }) {
+
+
+
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -23,21 +25,13 @@ function DashLayout({ children }: { children: React.ReactNode }) {
             setSidebarOpen((prev) => !prev);
         }
     };
-
-
-
     return (
-
-     <>
-       
-       <Dialog/>
-   
         <div className="flex relative h-dvh flex-col overflow-hidden bg-background ">
             <Navbar
                 sidebarOpen={sidebarOpen}
                 onMenuToggle={handleMenuToggle}
             />
-        
+
             <div className="flex flex-1 overflow-hidden ">
                 <Sidebar
                     open={sidebarOpen}
@@ -51,8 +45,6 @@ function DashLayout({ children }: { children: React.ReactNode }) {
 
             <MobileNavigation />
         </div>
-     </>
-
     )
 }
 

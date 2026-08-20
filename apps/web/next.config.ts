@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "api.dicebear.com" },
     ],
   },
+  turbopack: {
+    root: __dirname,
+  },
 };
 
 export default nextConfig;
