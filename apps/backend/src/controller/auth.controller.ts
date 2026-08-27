@@ -24,6 +24,7 @@ export async function signUp(req: Request, res: Response) {
     const existingUser = await prisma.user.findFirst({
         where: {
             email: userData.email,
+            username: userData.username
         }
     });
 
@@ -56,7 +57,7 @@ export async function signUp(req: Request, res: Response) {
 
 
 
-
+    
 }
 
 
@@ -95,7 +96,7 @@ export async function login(req: Request, res: Response) {
         }
     });
 
-    
+
 
     if (!existingRefreshToken) {
         await prisma.refreshToken.create({
@@ -129,25 +130,25 @@ export async function login(req: Request, res: Response) {
 }
 
 
-export async function logout(req:Request,res:Response) {
+export async function logout(req: Request, res: Response) {
 
-        
-    const {data:userId,error} = logOutUserSchema.safeParse(req.body);
 
-    if(error){
+    const { data: userId, error } = logOutUserSchema.safeParse(req.body);
+
+    if (error) {
         throw new CustomError("Invalid Input", 400);
-       }
+    }
 
-    if(!userId) 
+    if (!userId)
 
-    await prisma.refreshToken.delete({
-        where:{
-            userId
-        }
-    })
+        await prisma.refreshToken.delete({
+            where: {
+                userId
+            }
+        })
     res.clearCookie('refresh_token')
 
-    HttpResponse.success(res,{},"Success");
+    HttpResponse.success(res, {}, "Success");
 
 
 }

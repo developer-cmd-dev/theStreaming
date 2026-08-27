@@ -4,8 +4,7 @@ import { IconUsers } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import type { Category } from "@/lib/mock-data";
-import { cn, formatViewerCount } from "@/lib/utils";
-
+import { cn,formatViewerCount } from "@/lib/utils";
 type CategoryCardProps = {
   category: Category;
   className?: string;

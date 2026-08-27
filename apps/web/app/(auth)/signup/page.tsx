@@ -1,27 +1,65 @@
 'use client'
 import { AppName } from '@/components/Logo'
-import { CreateUserInput, createUserSchema, userSchema, z, ZodError } from '@repo/zod/schema'
-import { IconEye, IconEyeOff, IconEyeUp } from '@tabler/icons-react'
-import React, { ChangeEventHandler, useState } from 'react'
+import Spinner from '@/components/ui/spinner'
+import { HTTP_BACKEND_URL } from '@/utils/env'
+import { axiosHandler, AxiosPayload } from '@repo/axios'
+import { CustomError } from '@repo/customError'
+import { CreateUserInput, createUserSchema, HttpResponse, PublicUser, userSchema, ZodError, } from '@repo/zod/schema'
+import { IconEye, IconEyeOff } from '@tabler/icons-react'
+import { AxiosError } from 'axios'
+import React, { useState } from 'react'
 function Signup() {
 
 
   const [userCredential, setUserCredential] = useState<CreateUserInput>()
 
-  const [errors, setErrors] = useState<{ for: 'password' | 'username', message: string }>()
+  const [errors, setErrors] = useState<{ for: string, message: string } | null>()
   const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    setLoading(true)
     e.preventDefault()
+
+    const { data, error } = createUserSchema.safeParse(userCredential)
+
+
+    if (error) {
+
+      setErrors(null)
+      if (error instanceof ZodError) {
+        error._zod.def.map(err => {
+
+          setErrors({
+            for: err.path[0].toString(),
+            message: err.message
+          })
+
+        })
+      }
+
+      return
+    }
     try {
-      
 
+      const payload: AxiosPayload = {
+        url: HTTP_BACKEND_URL + '/signup',
+        method: 'POST',
+        data: userCredential
+      }
 
+      const response = await axiosHandler<HttpResponse<PublicUser>>(payload)
 
+      console.log(response.data)
+      setLoading(false)
 
     } catch (error) {
-      
+      if(error instanceof CustomError){
+        console.log(error.message)
+      }
+      setLoading(false)
     }
+
 
   }
 
@@ -84,14 +122,20 @@ function Signup() {
             autoComplete='username'
             className="rounded-lg border border-border bg-background px-3 py-2 text-text-primary placeholder:text-text-muted outline-none focus:border-brand/60 focus:ring-1 focus:ring-brand/30"
             required
-            onChange={handleChange} 
+            onChange={handleChange}
 
           />
+
+
+          {errors?.for === 'useranme' && (<label htmlFor="username" className="text-sm text-red-400 font-medium">
+            {errors.message}
+          </label>)}
+
         </div>
 
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="username" className="text-sm text-text-secondary font-medium">
+          <label htmlFor="email" className="text-sm text-text-secondary font-medium">
             Email
           </label>
           <input
@@ -153,7 +197,7 @@ function Signup() {
           type="submit"
           className="mt-2 rounded-md bg-brand text-brand-foreground py-2 font-semibold hover:bg-brand/80 transition-colors"
         >
-          Sign Up
+          {!loading ? "Sign Up" : <Spinner />}
         </button>
       </form>
       <div className="flex items-center gap-2 mt-2">
