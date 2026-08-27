@@ -7,8 +7,9 @@ import {
   IconSearch,
   IconX,
 } from "@tabler/icons-react";
-import { motion } from "motion/react";
-import Dialog from "../Dialog";
+import Link from "next/link";
+import Logo from "../Logo";
+
 
 type NavbarProps = {
   onMenuToggle: () => void;
@@ -16,6 +17,8 @@ type NavbarProps = {
 };
 
 export default function Navbar({ onMenuToggle, sidebarOpen }: NavbarProps) {
+
+
   return (
     <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/95 px-3 backdrop-blur-md sm:gap-4 sm:px-4">
       <button
@@ -36,22 +39,7 @@ export default function Navbar({ onMenuToggle, sidebarOpen }: NavbarProps) {
         <IconMenu2 size={20} />
       </button>
 
-      <a href="/" className="flex shrink-0 items-center gap-2">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-brand">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"
-              fill="#0D0D0F"
-              stroke="#0D0D0F"
-              strokeWidth="1"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-        <span className="hidden text-base font-bold tracking-tight sm:inline">
-          Pulse<span className="text-brand">Live</span>
-        </span>
-      </a>
+    <Logo/>
 
       <div className="mx-auto hidden max-w-xl flex-1 md:block">
         <div className="relative">
@@ -92,21 +80,21 @@ export default function Navbar({ onMenuToggle, sidebarOpen }: NavbarProps) {
           <IconBell size={18} />
         </button>
 
-        <button
-          type="button"
+
+        <Link
           className="hidden h-8 items-center rounded-md px-3 text-sm font-medium text-text-secondary transition-colors hover:bg-surface hover:text-text-primary sm:flex"
+          href={'/login'}
         >
           Log In
-        </button>
+        </Link>
 
-        <motion.button
-          type="button"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="h-8 rounded-md bg-brand px-3 text-sm font-semibold text-brand-foreground transition-shadow hover:shadow-[0_0_20px_rgba(204,243,0,0.25)] sm:px-4"
+        <Link
+        
+          className="h-8 rounded-md bg-brand px-3 text-sm font-semibold text-brand-foreground transition-shadow hover:shadow-[0_0_20px_rgba(204,243,0,0.25)] sm:px-4 flex items-center justify-center"
+          href="/signup"
         >
           Sign Up
-        </motion.button>
+        </Link>
       </div>
     </header>
   );

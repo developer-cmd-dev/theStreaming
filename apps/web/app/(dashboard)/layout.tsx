@@ -1,4 +1,5 @@
 "use client"
+import Dialog from '@/components/Dialog'
 import MobileNavigation from '@/components/streaming/MobileNavigation'
 import Navbar from '@/components/streaming/Navbar'
 import Sidebar from '@/components/streaming/Sidebar'

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PulseLive — Live Streaming Platform",
+  title: "AimDot — Live Streaming Platform",
   description: "Watch live streams, discover creators, and join the community on PulseLive.",
 };
 

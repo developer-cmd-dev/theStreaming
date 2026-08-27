@@ -6,6 +6,7 @@ export const roleSchema = z.enum(["USER", "ADMIN"]);
 export const userSchema = z.object({
   id: z.uuid(),
   email: z.email(),
+  name:z.string(),
   password: z.string().min(8),
   username: z
     .string()
@@ -19,6 +20,7 @@ export const userSchema = z.object({
 
 /** Signup / create — only what the client sends */
 export const createUserSchema = userSchema.pick({
+  name:true,
   email: true,
   password: true,
   username: true,

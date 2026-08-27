@@ -1,3 +1,4 @@
+import { ZodError } from "zod";
 
 export {
   roleSchema,
@@ -55,3 +56,4 @@ export {
 
 
 export * as z from 'zod'
+export {ZodError}

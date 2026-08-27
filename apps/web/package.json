@@ -9,12 +9,17 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@repo/axios": "*",
+    "@repo/zod":"*",
     "@tabler/icons-react": "^3.46.0",
+    "axios": "^1.19.0",
     "motion": "^13.1.0",
     "next": "16.3.1",
+    "next-auth": "^4.24.15",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "tabler": "^1.0.0-alpha.8"
+    "tabler": "^1.0.0-alpha.8",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
