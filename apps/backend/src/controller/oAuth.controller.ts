@@ -1,4 +1,4 @@
-import { type Request, type Response } from "express";
+import { response, type Request, type Response } from "express";
 import { CustomError } from "../error/customError";
 import axios, { AxiosError } from "axios";
 import { axiosHandler } from "../lib/axios";
@@ -9,9 +9,11 @@ import jwt from 'jsonwebtoken'
 
 
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY as string;
+const GOOGLE_REDIRECT_URI_LOGIN= process.env.GOOGLE_REDIRECT_URI_LOGIN!
+const GOOGLE_REDIRECT_URI_SIGNUP=process.env.GOOGLE_REDIRECT_URI_SIGNUP!
 
 export const googleAuthCodeVerifier = async (req: Request, res: Response) => {
-  const { authCode, code_verifier } = req.body;
+  const { authCode, code_verifier, from } = req.body;
 
   if (!authCode && code_verifier) throw new CustomError("Missing Google OAuth authorization code.", 400);
 
@@ -23,7 +25,7 @@ export const googleAuthCodeVerifier = async (req: Request, res: Response) => {
       client_secret: process.env.GOOGLE_CLIENT_SECRET!,
       code: authCode,
       code_verifier,
-      redirect_uri: process.env.GOOGLE_REDIRECT_URI!,
+      redirect_uri: from === 'signup' ? GOOGLE_REDIRECT_URI_SIGNUP :GOOGLE_REDIRECT_URI_LOGIN,
       grant_type: "authorization_code",
     })
 
@@ -46,17 +48,25 @@ export const googleAuthCodeVerifier = async (req: Request, res: Response) => {
       }
     )
 
-    console.log(googleUserInfo)
 
-    const existedUser = <PublicUser>await prisma.user.findFirst({
+
+    const existedUser = await prisma.user.findFirst({
       where: {
         email: googleUserInfo.data.email
       }
     })
 
     if (existedUser) {
-      HttpResponse.success(res, existedUser);
+      const {data,error}=publicUserSchema.safeParse(existedUser);
+      
+      const { access_token, refresh_token } = generateToken({ userId: existedUser.id, username: existedUser.username });
+      setTokenCookie(res, refresh_token, access_token)
+      HttpResponse.success(res, data);
       return
+    }else{
+      if(from==='login'){
+        throw new CustomError("User not found", 404);
+      }
     }
 
     const username = googleUserInfo.data.email.substring(0, googleUserInfo.data.email.indexOf("@"));
@@ -66,7 +76,7 @@ export const googleAuthCodeVerifier = async (req: Request, res: Response) => {
         name: googleUserInfo.data.name,
         email: googleUserInfo.data.email,
         username,
-        avatar:googleUserInfo.data.avatar
+        avatar: googleUserInfo.data.picture
       }
     })
 
@@ -75,10 +85,9 @@ export const googleAuthCodeVerifier = async (req: Request, res: Response) => {
       username: createdNewUser.username
     }
 
-    const access_token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: "3h" });
-    const refresh_token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: "30d" });
 
-
+    const { access_token, refresh_token } = generateToken(payload)
+    setTokenCookie(res, access_token, refresh_token)
 
 
 
@@ -90,19 +99,6 @@ export const googleAuthCodeVerifier = async (req: Request, res: Response) => {
       }
     })
 
-    res.cookie("refresh_token", refresh_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-
-    })
-    res.cookie("access_token",access_token,{
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      maxAge: 3 * 60 * 60 * 1000 // 3 hours
-    })
 
     const { data: responseData } = publicUserSchema.safeParse(createdNewUser);
 
@@ -113,6 +109,8 @@ export const googleAuthCodeVerifier = async (req: Request, res: Response) => {
 
     if (error instanceof AxiosError) {
       console.log(error.response?.data)
+    }else if(error instanceof CustomError){
+    throw new CustomError(error.message,error.statusCode);
     }
 
     throw new CustomError("Something went wrong try again leter!", 500);
@@ -122,3 +120,29 @@ export const googleAuthCodeVerifier = async (req: Request, res: Response) => {
 
 
 
+function setTokenCookie(res: Response, refresh_token: string, access_token: string) {
+
+  res.cookie("refresh_token", refresh_token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+
+  })
+  res.cookie("access_token", access_token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 3 * 60 * 60 * 1000 // 3 hours
+  })
+
+  return response
+}
+
+
+function generateToken(userPayload: { userId: string, username: string }): { access_token: string, refresh_token: string } {
+
+  const access_token = jwt.sign(userPayload, JWT_SECRET_KEY, { expiresIn: "3h" });
+  const refresh_token = jwt.sign(userPayload, JWT_SECRET_KEY, { expiresIn: "30d" });
+  return { refresh_token, access_token }
+} 

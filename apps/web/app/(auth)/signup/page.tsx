@@ -1,6 +1,6 @@
 'use client'
 import { AppName } from '@/components/Logo'
-import { GOOGLE_CLIENT_ID, HTTP_BACKEND_URL } from '@/utils/env'
+import {  HTTP_BACKEND_URL } from '@/utils/env'
 import { axiosHandler, AxiosPayload } from '@repo/axios'
 import { CustomError } from '@repo/customError'
 import { CreateUserInput, createUserSchema, HttpResponse, PublicUser, userSchema, ZodError, } from '@repo/zod/schema'
@@ -10,6 +10,7 @@ import React, { useEffect, useState } from 'react'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { googleAuth } from '@/lib/oauth/googleOAuth'
 function Signup() {
 
 
@@ -88,27 +89,7 @@ function Signup() {
   }
 
 
-  async function googleAuth() {
 
-    const code_verifier = crypto.randomUUID();
-
-    sessionStorage.setItem('code_verifier', code_verifier);
-
-    const code_challenge = await generateCodeChallenge(code_verifier);
-
-    const params = new URLSearchParams({
-      client_id: GOOGLE_CLIENT_ID,
-      redirect_uri: "http://localhost:3000/signup",
-      response_type: "code",
-      scope: 'openid email profile',
-      code_challenge,
-      code_challenge_method: 'S256',
-      // access_type: 'offline',    // ← Required to receive a refresh_token
-      // prompt: 'consent',         // ← Required to actually receive the refresh_token (see below)
-    });
-
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
-  }
 
 
 
@@ -127,9 +108,10 @@ function Signup() {
         method: "POST",
         data: {
           authCode,
-          code_verifier
+          code_verifier,
+          from:"signup"
         },
-      withCredentials:true
+        withCredentials: true
       }
 
 
@@ -283,7 +265,7 @@ function Signup() {
         <button
           type="button"
           className="flex items-center justify-center gap-2 rounded-md border border-border bg-background text-text-primary font-medium py-2 hover:bg-surface transition-colors"
-          onClick={() => googleAuth()}
+          onClick={() => googleAuth("signup")}
         >
 
           {loading?.for === 'googleAuthButton' && loading.isLoading ? <Spinner className='size-6' /> : <> <svg width="20" height="20" viewBox="0 0 48 48" className="mr-2" fill="none">
@@ -314,28 +296,6 @@ export default Signup
 
 
 
-
-async function generateCodeChallenge(
-  codeVerifier: string
-) {
-  const data = new TextEncoder().encode(codeVerifier);
-
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    data
-  );
-
-  const bytes = new Uint8Array(digest);
-
-  const base64 = btoa(
-    String.fromCharCode(...bytes)
-  );
-
-  return base64
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-}
 
 
 

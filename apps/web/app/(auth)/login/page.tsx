@@ -1,12 +1,134 @@
 "use client"
 import { AppName } from '@/components/Logo'
-import { oAuthAuthorization } from '@/lib/oauth/oauth'
+import { googleAuth } from '@/lib/oauth/googleOAuth'
+import React, { useEffect, useState } from 'react'
+import { LoginUserInput, loginUserScheam, PublicUser } from '../../../../../packages/zod/schema/user'
+import { HttpResponse, ZodError } from '@repo/zod/schema'
+import { toast } from '@/components/ui/toast'
+import { axiosHandler, AxiosPayload } from '@repo/axios'
+import { url } from 'inspector'
+import { HTTP_BACKEND_URL } from '@/utils/env'
+import { CustomError } from '@repo/customError'
+import {  useRouter, useSearchParams } from 'next/navigation'
+import { Spinner } from '@/components/ui/spinner'
+import { AxiosError } from 'axios'
 
 function Login() {
+
+  const [userPayload, setUserPayload] = useState<LoginUserInput>()
+  const [loading, setLoading] = useState<{ for: "submitButton" | "googleAuthButton", isLoading: boolean }>()
+  const router = useRouter()
+  const searchParam = useSearchParams()
+  const authCode = searchParam.get('code');
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+
+    const { name, value } = e.target;
+
+    setUserPayload((prev) => {
+      return {
+        password: name === "password" ? value : prev?.password ?? "",
+        username: name === "username" ? value : prev?.username ?? "",
+      };
+    });
+  }
+
+
+
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading({ for: 'submitButton', isLoading: true })
+    const { data, error } = loginUserScheam.safeParse(userPayload);
+
+    if (error && error instanceof ZodError) {
+      console.log(error);
+      return;
+
+    }
+
+    try {
+      const payload: AxiosPayload = {
+        url: HTTP_BACKEND_URL + '/login',
+        method: 'POST',
+        data
+      }
+      const response = await axiosHandler<HttpResponse<PublicUser>>(payload);
+      console.log(response.data);
+      setLoading({ for: 'submitButton', isLoading: false })
+      router.push('/')
+
+    } catch (error) {
+      if (error instanceof CustomError) {
+        setLoading({ for: 'submitButton', isLoading: false })
+        toast.add({
+          type: "error",
+          description: error.message
+        })
+        
+      }
+      return
+    }
+
+
+
+  }
+
+
+
+  useEffect(() => {
+    (async () => {
+      if (!authCode) return;
+      setLoading({ for: 'googleAuthButton', isLoading: true })
+
+
+      const code_verifier = sessionStorage.getItem('code_verifier');
+
+      if (!code_verifier) return
+
+      const payload: AxiosPayload = {
+        url: HTTP_BACKEND_URL + '/auth/google',
+        method: "POST",
+        data: {
+          authCode,
+          code_verifier,
+          from:'login'
+        },
+        withCredentials: true
+      }
+
+
+      try {
+        const response = await axiosHandler<HttpResponse<PublicUser>>(payload);
+        setLoading({ for: 'googleAuthButton', isLoading: false })
+
+        router.push('/')
+      } catch (error) {
+        if (error instanceof CustomError) {
+          toast.add({
+            type: 'error',
+            description: error.message
+          })
+        }
+
+        setLoading({ for: 'googleAuthButton', isLoading: false })
+
+        return
+      }
+
+    })()
+
+
+  }, [])
+
+
+
+
+
+
   return (
     <div className="w-full max-w-md mx-auto bg-surface-elevated rounded-lg shadow-lg p-8 flex flex-col gap-6">
       <h2 className="text-2xl font-semibold text-center text-text-primary mb-2">Login in to <AppName /></h2>
-      <form className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <label htmlFor="username" className="text-sm text-text-secondary font-medium">
             Username
@@ -19,6 +141,7 @@ function Login() {
             autoComplete="username"
             className="rounded-md border border-border bg-background px-3 py-2 text-text-primary placeholder:text-text-muted outline-none focus:border-brand/60 focus:ring-1 focus:ring-brand/30"
             required
+            onChange={handleChange}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -33,13 +156,15 @@ function Login() {
             autoComplete="current-password"
             className="rounded-md border border-border bg-background px-3 py-2 text-text-primary placeholder:text-text-muted outline-none focus:border-brand/60 focus:ring-1 focus:ring-brand/30"
             required
+            onChange={handleChange}
           />
         </div>
         <button
           type="submit"
-          className="mt-2 rounded-md bg-brand text-brand-foreground py-2 font-semibold hover:bg-brand/80 transition-colors"
+          className="mt-2 rounded-md bg-brand text-brand-foreground py-2 font-semibold hover:bg-brand/80 transition-colors flex items-center justify-center"
         >
-          Sign In
+          {loading?.for === 'submitButton' && loading.isLoading ? <Spinner className='size-6' /> : "Login"}
+          
         </button>
       </form>
       <div className="flex items-center gap-2 mt-2">
@@ -51,9 +176,9 @@ function Login() {
         <button
           type="button"
           className=" flex items-center justify-center gap-2 rounded-md border border-border bg-background text-text-primary font-medium py-2 hover:bg-surface transition-colors"
-          onClick={() => oAuthAuthorization('google')}
+          onClick={() => googleAuth("login")}
         >
-          <svg width="20" height="20" viewBox="0 0 48 48" className="mr-2" fill="none">
+            {loading?.for === 'googleAuthButton' && loading.isLoading ? <Spinner className='size-6' /> : <> <svg width="20" height="20" viewBox="0 0 48 48" className="mr-2" fill="none">
             <g>
               <path fill="#4285F4" d="M43.6 20.5h-1.9V20H24v8h11.1C34.7 32 30 35.5 24 35.5 16.6 35.5 10.5 29.4 10.5 22S16.6 8.5 24 8.5c3.1 0 5.9 1.1 8 2.9l6-5.8C34.7 2.4 29.6 0 24 0 10.7 0 0 10.7 0 24s10.7 24 24 24c12.5 0 23-9.1 23.9-21.2.1-.8.1-1.5.1-2.3 0-1.6-.2-3.2-.4-4.7z" />
               <path fill="#34A853" d="M6.3 14.2l6.6 4.8C14.8 16.2 19 13 24 13c3.1 0 5.9 1.1 8 2.9l6-5.8C34.7 2.4 29.6 0 24 0 15.3 0 7.7 5.7 4 14.2z" />
@@ -61,7 +186,7 @@ function Login() {
               <path fill="#EA4335" d="M43.6 20.5h-1.9V20H24v8h11.1c-1.6 4.3-5.5 7.5-11.1 7.5-6.1 0-11.3-3.9-13.2-9.3l-7.7 6C7.6 44.3 15.3 48 24 48c12.5 0 23-9.1 23.9-21.2.1-.8.1-1.5.1-2.3 0-1.6-.2-3.2-.4-4.7z" />
             </g>
           </svg>
-          Continue with Google
+            Continue with Google</>}
         </button>
         <button
           type="button"

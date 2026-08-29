@@ -8,6 +8,7 @@ export const userSchema = z.object({
   email: z.email(),
   name:z.string(),
   password: z.string().min(8),
+  avatar:z.string().nullable(),
   username: z
     .string()
     .min(3)

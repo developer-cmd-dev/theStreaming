@@ -79,6 +79,10 @@ export async function login(req: Request, res: Response) {
 
     if (!getUser) throw new CustomError("User not found!", 404);
 
+    if(!getUser.password){
+        throw new CustomError("Please use Google login.", 400);
+    }
+
     const verifyPassword = await Bun.password.verify(userCredential.password, getUser.password??'');
     if (!verifyPassword) {
         throw new CustomError("Invalid password!", 401);
@@ -123,10 +127,16 @@ export async function login(req: Request, res: Response) {
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
 
     })
+    res.cookie("access_token",access_token,{
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: 3 * 60 * 60 * 1000 // 3 hours
+      })
 
     const { data: responseData } = publicUserSchema.safeParse(getUser);
 
-    HttpResponse.success(res, { ...responseData, access_token });
+    HttpResponse.success(res, responseData);
 }
 
 
@@ -146,7 +156,8 @@ export async function logout(req: Request, res: Response) {
                 userId
             }
         })
-    res.clearCookie('refresh_token')
+    res.clearCookie('refresh_token');
+    res.clearCookie('access_token');
 
     HttpResponse.success(res, {}, "Success");
 
