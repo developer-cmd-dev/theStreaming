@@ -11,7 +11,8 @@ const nextConfig: NextConfig = {
   turbopack: {
     root:path.resolve(__dirname, "../.."),
   },
-  transpilePackages:['@repo/axios']
+  transpilePackages:['@repo/axios'],
+  reactStrictMode:false
 };
 
 export default nextConfig;

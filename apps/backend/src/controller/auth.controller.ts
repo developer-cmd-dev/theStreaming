@@ -79,7 +79,7 @@ export async function login(req: Request, res: Response) {
 
     if (!getUser) throw new CustomError("User not found!", 404);
 
-    const verifyPassword = await Bun.password.verify(userCredential.password, getUser.password);
+    const verifyPassword = await Bun.password.verify(userCredential.password, getUser.password??'');
     if (!verifyPassword) {
         throw new CustomError("Invalid password!", 401);
     }

@@ -17,9 +17,10 @@ model User {
   id           String     @id @default(uuid())
   name         String 
   email        String     @unique
-  password     String
+  password     String?
   username     String     @unique
   role         Role       @default(USER)
+  avatar       String?
   comments     Comments[]
   // subscriptions: Users who subscribe to this user
   subscribers  User[]     @relation("UserSubscribers")

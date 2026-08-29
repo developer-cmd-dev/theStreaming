@@ -7,6 +7,7 @@ import { liveStreams } from "../controller/dashboard.controller";
 import { searchUser } from "../controller/search.controller";
 import { authenticateAgentUser, connectToTheAIagent, saveAgentChats } from "../controller/agent.controller";
 import { prisma } from "@repo/db/prisma";
+import {  googleAuthCodeVerifier } from "../controller/oAuth.controller";
 
 
 const router = Router();
@@ -36,6 +37,7 @@ router.post('/authenticate-agent',authenticateAgentUser);
 // Route to save user and agent chat messages to the database
 router.post('/save-agent-chat', authMiddleware, saveAgentChats);
 
+router.post('/auth/google', googleAuthCodeVerifier);
 
 
 export default router;
