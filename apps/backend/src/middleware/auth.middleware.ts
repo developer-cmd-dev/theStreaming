@@ -11,6 +11,7 @@ const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY as string;
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
     const token = req.headers.authorization;
     let { refresh_token, access_token } = req.cookies;
+
     try {
 
 
@@ -40,6 +41,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
         if (error instanceof JsonWebTokenError) {
             throw new CustomError(`Unauthorized:${error.message}`, 401);
         }
+        console.log(error)
     }
 
 }

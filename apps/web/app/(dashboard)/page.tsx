@@ -1,6 +1,4 @@
 
-"use client";
-
 import CategorySection from '@/components/streaming/CategorySection'
 import FeaturedStream from '@/components/streaming/FeaturedStream'
 import LiveChat from '@/components/streaming/LiveChat'
@@ -10,7 +8,6 @@ import StreamCard from '@/components/streaming/StreamCard'
 
 
 
-import { useState } from "react";
 import {
   featuredCreators,
   popularCategories,
@@ -20,6 +17,10 @@ import {
   trendingStreams,
 } from "@/lib/mock-data";
 import CreatorCard from "@/components/streaming/CreatorCard";
+import { axiosHandler, AxiosPayload } from '@repo/axios'
+import { HttpResponse, PublicUser } from '@repo/zod/schema'
+import { CustomError } from '@repo/customError'
+import { cookies } from 'next/headers'
 
 
 
@@ -50,9 +51,9 @@ function StreamGrid({
 }
 
 
-function Home() {
+async function Home() {
 
-  const [loading, setLoading] = useState(true);
+
 
 
   return (
@@ -85,17 +86,17 @@ function Home() {
 
         <section>
           <SectionHeader title="Recommended Streams" />
-          <StreamGrid streams={recommendedStreams} loading={loading} />
+          <StreamGrid streams={recommendedStreams} loading={true} />
         </section>
 
         <section>
           <SectionHeader title="Trending Now" />
-          <StreamGrid streams={trendingStreams} loading={loading} />
+          <StreamGrid streams={trendingStreams} loading={true} />
         </section>
 
         <section>
           <SectionHeader title="Recently Watched" />
-          <StreamGrid streams={recentlyWatched} loading={loading} />
+          <StreamGrid streams={recentlyWatched} loading={true} />
         </section>
 
         <CategorySection
@@ -120,3 +121,7 @@ function Home() {
 }
 
 export default Home
+
+
+
+

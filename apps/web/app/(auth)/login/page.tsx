@@ -12,6 +12,7 @@ import { CustomError } from '@repo/customError'
 import {  useRouter, useSearchParams } from 'next/navigation'
 import { Spinner } from '@/components/ui/spinner'
 import { AxiosError } from 'axios'
+import { userUserAuth } from '@/lib/zustandStore'
 
 function Login() {
 
@@ -20,6 +21,7 @@ function Login() {
   const router = useRouter()
   const searchParam = useSearchParams()
   const authCode = searchParam.get('code');
+  const {setUserPaylod:setUserPayloadState}=userUserAuth((state)=>state)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
 
@@ -53,7 +55,7 @@ function Login() {
         data
       }
       const response = await axiosHandler<HttpResponse<PublicUser>>(payload);
-      console.log(response.data);
+      setUserPayloadState(response.data);
       setLoading({ for: 'submitButton', isLoading: false })
       router.push('/')
 
@@ -99,6 +101,7 @@ function Login() {
 
       try {
         const response = await axiosHandler<HttpResponse<PublicUser>>(payload);
+      setUserPayloadState(response.data);
         setLoading({ for: 'googleAuthButton', isLoading: false })
 
         router.push('/')

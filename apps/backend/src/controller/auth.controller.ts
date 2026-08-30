@@ -179,3 +179,33 @@ export async function refreshToken(req: Request, res: Response) {
 
     }
 }
+
+
+
+export async function getUserInfo(req:Request,res:Response) {
+    
+    const userId = req.userId;
+
+    try {
+        const user =await prisma.user.findFirst({
+            where:{
+                id:userId
+            }
+        })
+
+        if(!user){
+        throw new CustomError("User not found", 404);
+   
+        }
+
+
+        const {data}=publicUserSchema.safeParse(user);
+
+        HttpResponse.success(res,data);
+    } catch (error) {
+        throw new CustomError("Failed to fetch user info", 500);
+    }
+
+
+
+}

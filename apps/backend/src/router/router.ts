@@ -1,6 +1,6 @@
 import { Router, type Response } from "express";
 import { healthCheck } from "../controller/healthcheck.controller";
-import { login, logout, refreshToken, signUp } from "../controller/auth.controller";
+import { getUserInfo, login, logout, refreshToken, signUp } from "../controller/auth.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { createStream,connectMediaServer,endStream, startRecordingStream, deleteStream,updateStreamOnLive, obsStream} from "../controller/streaming.controller";
 import { liveStreams } from "../controller/dashboard.controller";
@@ -15,7 +15,9 @@ router.get('/health',healthCheck);
 router.post('/signup',signUp);
 router.post('/login',login);
 router.post('/refresh',refreshToken);
-router.get('/logout',logout)
+router.get('/logout',logout);
+router.get('/get-user',authMiddleware,getUserInfo)
+
 
 // Dashboard routes
 router.get('/',liveStreams)

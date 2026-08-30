@@ -22,6 +22,7 @@ export interface AxiosPayload {
     validateStatus?: (status: number) => boolean,
     xsrfCookieName?: string,
     xsrfHeaderName?: string,
+    cookies?: object,
 }
 
 

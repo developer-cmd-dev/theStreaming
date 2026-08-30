@@ -11,6 +11,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { googleAuth } from '@/lib/oauth/googleOAuth'
+import { userUserAuth } from '@/lib/zustandStore'
 function Signup() {
 
 
@@ -22,6 +23,7 @@ function Signup() {
   const searchParam = useSearchParams();
   const authCode = searchParam.get('code');
   const router = useRouter()
+  const {setUserPaylod}=userUserAuth((state)=>state)
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     setLoading({ for: 'submitButton', isLoading: true })
@@ -56,7 +58,7 @@ function Signup() {
 
       const response = await axiosHandler<HttpResponse<PublicUser>>(payload)
 
-      console.log(response.data)
+      setUserPaylod(response.data);
       setLoading({ for: "submitButton", isLoading: false })
 
     } catch (error) {
@@ -117,6 +119,8 @@ function Signup() {
 
       try {
         const response = await axiosHandler<HttpResponse<PublicUser>>(payload);
+      setUserPaylod(response.data);
+
         setLoading({ for: 'googleAuthButton', isLoading: false })
 
         router.push('/')
