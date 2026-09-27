@@ -78,9 +78,6 @@ async function Home() {
         </div>
 
       </div>
-
-
-      =
       <div className="space-y-8 px-4 pb-6 sm:px-5 lg:px-6">
         <CategorySection categories={topCategories} />
 

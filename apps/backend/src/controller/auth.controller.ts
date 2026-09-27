@@ -144,7 +144,6 @@ export async function logout(req: Request, res: Response) {
 
 
     const { data: userId, error } = logOutUserSchema.safeParse(req.body);
-
     if (error) {
         throw new CustomError("Invalid Input", 400);
     }

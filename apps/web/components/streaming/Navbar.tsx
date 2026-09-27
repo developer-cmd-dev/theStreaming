@@ -13,6 +13,9 @@ import { HttpResponse, PublicUser } from "@repo/zod/schema";
 import { axiosHandler, AxiosPayload } from "@repo/axios";
 import { CustomError } from "@repo/customError";
 import { userUserAuth } from "@/lib/zustandStore";
+import UserMenuDropDown from "../UserMenuDropDown";
+import { Button } from "../ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 
 type NavbarProps = {
@@ -22,7 +25,7 @@ type NavbarProps = {
 
 export default function Navbar({ onMenuToggle, sidebarOpen }: NavbarProps) {
 
-const userPayload=userUserAuth((state)=>state.userPayload)
+  const userPayload = userUserAuth((state) => state.userPayload)
 
   return (
     <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/95 px-3 backdrop-blur-md sm:gap-4 sm:px-4">
@@ -44,7 +47,7 @@ const userPayload=userUserAuth((state)=>state.userPayload)
         <IconMenu2 size={20} />
       </button>
 
-    <Logo/>
+      <Logo />
 
       <div className="mx-auto hidden max-w-xl flex-1 md:block">
         <div className="relative">
@@ -87,21 +90,27 @@ const userPayload=userUserAuth((state)=>state.userPayload)
 
 
         {
-          userPayload?<h1>{userPayload.username}</h1>:<Link
-          className="hidden h-8 items-center rounded-md px-3 text-sm font-medium text-text-secondary transition-colors hover:bg-surface hover:text-text-primary sm:flex"
-          href={'/login'}
-        >
-          Log In
-        </Link>
+          userPayload ? <UserMenuDropDown authUserPayload={userPayload}><Avatar>
+            <AvatarImage src={userPayload.avatar??''} />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar></UserMenuDropDown> : <>
+            <Link
+              className="hidden h-8 items-center rounded-md px-3 text-sm font-medium text-text-secondary transition-colors hover:bg-surface hover:text-text-primary sm:flex"
+              href={'/login'}
+            >
+              Log In
+            </Link>
+            <Link
+
+              className="h-8 rounded-md bg-brand px-3 text-sm font-semibold text-brand-foreground transition-shadow hover:shadow-[0_0_20px_rgba(204,243,0,0.25)] sm:px-4 flex items-center justify-center"
+              href="/signup"
+            >
+              Sign Up
+            </Link>
+          </>
         }
 
-        <Link
-        
-          className="h-8 rounded-md bg-brand px-3 text-sm font-semibold text-brand-foreground transition-shadow hover:shadow-[0_0_20px_rgba(204,243,0,0.25)] sm:px-4 flex items-center justify-center"
-          href="/signup"
-        >
-          Sign Up
-        </Link>
+
       </div>
     </header>
   );

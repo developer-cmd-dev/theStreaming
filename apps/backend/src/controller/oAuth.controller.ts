@@ -58,7 +58,7 @@ export const googleAuthCodeVerifier = async (req: Request, res: Response) => {
 
     if (existedUser) {
       const {data,error}=publicUserSchema.safeParse(existedUser);
-      
+      console.log(data)
       const { access_token, refresh_token } = generateToken({ userId: existedUser.id, username: existedUser.username });
       setTokenCookie(res, refresh_token, access_token)
       HttpResponse.success(res, data);
@@ -68,6 +68,8 @@ export const googleAuthCodeVerifier = async (req: Request, res: Response) => {
         throw new CustomError("User not found", 404);
       }
     }
+
+    console.log(googleUserInfo.data.picture)
 
     const username = googleUserInfo.data.email.substring(0, googleUserInfo.data.email.indexOf("@"));
 
