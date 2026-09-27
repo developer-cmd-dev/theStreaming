@@ -12,7 +12,7 @@ import Logo from "../Logo";
 import { HttpResponse, PublicUser } from "@repo/zod/schema";
 import { axiosHandler, AxiosPayload } from "@repo/axios";
 import { CustomError } from "@repo/customError";
-import { userUserAuth } from "@/lib/zustandStore";
+import { useUserAuth } from "@/lib/zustandStore";
 import UserMenuDropDown from "../UserMenuDropDown";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -25,7 +25,7 @@ type NavbarProps = {
 
 export default function Navbar({ onMenuToggle, sidebarOpen }: NavbarProps) {
 
-  const userPayload = userUserAuth((state) => state.userPayload)
+  const userPayload = useUserAuth((state) => state.userPayload)
 
   return (
     <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/95 px-3 backdrop-blur-md sm:gap-4 sm:px-4">

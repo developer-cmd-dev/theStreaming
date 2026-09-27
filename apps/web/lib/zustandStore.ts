@@ -7,7 +7,7 @@ type UserAuthState = {
     logout:()=>void;
 };
 
-export const userUserAuth = create<UserAuthState>(set => ({
+export const useUserAuth = create<UserAuthState>(set => ({
   userPayload:null,
   setUserPaylod:(data:PublicUser)=>set(state=>({userPayload:data})),
   logout:()=>set(state=>({userPayload:null}))

@@ -3,7 +3,7 @@ import Dialog from '@/components/Dialog'
 import MobileNavigation from '@/components/streaming/MobileNavigation'
 import Navbar from '@/components/streaming/Navbar'
 import Sidebar from '@/components/streaming/Sidebar'
-import { userUserAuth } from '@/lib/zustandStore'
+import { useUserAuth } from '@/lib/zustandStore'
 import { axiosHandler, AxiosPayload } from '@repo/axios'
 import { CustomError } from '@repo/customError'
 import { HttpResponse, PublicUser } from '@repo/zod/schema'
@@ -15,8 +15,7 @@ function DashLayout({ children }: { children: React.ReactNode }) {
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const { userPayload, setUserPaylod } = userUserAuth(state => state)
+    const { userPayload, setUserPaylod } = useUserAuth(state => state)
 
 
     useEffect(() => {

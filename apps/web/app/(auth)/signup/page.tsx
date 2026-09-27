@@ -11,7 +11,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { googleAuth } from '@/lib/oauth/googleOAuth'
-import { userUserAuth } from '@/lib/zustandStore'
+import { useUserAuth } from '@/lib/zustandStore'
 function Signup() {
 
 
@@ -23,7 +23,7 @@ function Signup() {
   const searchParam = useSearchParams();
   const authCode = searchParam.get('code');
   const router = useRouter()
-  const {setUserPaylod}=userUserAuth((state)=>state)
+  const {setUserPaylod}=useUserAuth((state)=>state)
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     setLoading({ for: 'submitButton', isLoading: true })

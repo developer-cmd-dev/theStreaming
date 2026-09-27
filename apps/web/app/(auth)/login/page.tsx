@@ -12,7 +12,7 @@ import { CustomError } from '@repo/customError'
 import {  useRouter, useSearchParams } from 'next/navigation'
 import { Spinner } from '@/components/ui/spinner'
 import { AxiosError } from 'axios'
-import { userUserAuth } from '@/lib/zustandStore'
+import { useUserAuth } from '@/lib/zustandStore'
 
 function Login() {
 
@@ -21,7 +21,7 @@ function Login() {
   const router = useRouter()
   const searchParam = useSearchParams()
   const authCode = searchParam.get('code');
-  const {setUserPaylod:setUserPayloadState}=userUserAuth((state)=>state)
+  const {setUserPaylod:setUserPayloadState}=useUserAuth((state)=>state)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
 
