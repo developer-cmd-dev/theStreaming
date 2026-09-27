@@ -46,21 +46,40 @@ function page() {
 
       <div className='flex gap-2  w-1/2 h-full'>
         <div className=' w-2/3 h-full flex flex-col'>
-          <LiveChat className='border-none  bg-brand-foreground rounded-sm '/>
+          <LiveChat className='border-none  bg-brand-foreground rounded-sm ' />
         </div>
 
         <div className=' w-1/2 h-full flex flex-col gap-2 '>
-            <div className='h-1/3 w-full bg-brand-foreground rounded-sm'>
-            <Heading title='Stream Info' icon={<IconInfoCircle/>} className='h-11'/>
-            <Separator/>
+          <div className='h-1/3 w-full bg-brand-foreground rounded-sm'>
+            <Heading title='Stream Info' icon={<IconInfoCircle />} className='h-11' />
+            <Separator />
 
+          </div>
+
+          <div className='w-full h-2/3 bg-brand-foreground rounded-sm '>
+            <Heading title='Channel Actions' icon={<IconHandThreeFingers />} className='h-12' />
+            <Separator />
+
+            <div className='h-full w-full px-3'>
+              {
+                channelActionSections.map((value, index) => (
+
+                  <>
+                    <div key={index} className='w-full flex flex-col gap-3 py-3'>
+                      <h1 className='text-xl'>{value.title}</h1>
+                      {value.items.map((items, id) => (
+                        <p key={id} className='text-text-secondary text-md'>{items.label}</p>
+                      ))}
+                    </div>
+                    <Separator />
+                  </>
+
+
+                ))
+              }
             </div>
 
-            <div className='w-full h-2/3 bg-brand-foreground rounded-sm '>
-            <Heading title='Channel Actions' icon={<IconHandThreeFingers/>} className='h-12'/>
-            <Separator/>
-
-            </div>
+          </div>
 
         </div>
 
@@ -74,12 +93,80 @@ function page() {
 
 
 
-function Heading({ title, icon,className }: { title: string, icon: React.ReactNode,className?:string }) {
+function Heading({ title, icon, className }: { title: string, icon: React.ReactNode, className?: string }) {
   return (
-    <div className={cn('h-10 px-6 flex gap-4 items-center ',className)}>
+    <div className={cn('h-10 px-6 flex gap-4 items-center ', className)}>
       {icon}
       <h1 className='text-xl font-semibold'>{title}</h1>
     </div>
   )
 }
 export default page
+
+
+const channelActionSections = [
+  {
+    title: "Chat access",
+    items: [
+      {
+        label: "Account age",
+        type: "navigation",
+        value: "Off",
+      },
+      {
+        label: "Followers only",
+        type: "navigation",
+        value: "Off",
+      },
+      {
+        label: "Subscribers only",
+        type: "switch",
+        value: false,
+      },
+    ],
+  },
+
+  {
+    title: "Chat options",
+    items: [
+      {
+        label: "Emotes only",
+        type: "switch",
+        value: false,
+      },
+      {
+        label: "Slow mode",
+        type: "navigation",
+        value: "Off",
+      },
+      {
+        label: "Banned words",
+        type: "navigation",
+      },
+      {
+        label: "AI Chat Moderation",
+        type: "external",
+      },
+    ],
+  },
+
+  {
+    title: "Channel options",
+    items: [
+      {
+        label: "Show view count",
+        type: "switch",
+        value: true,
+      },
+      {
+        label: "Raid Channel",
+        type: "navigation",
+        disabled: true,
+      },
+      {
+        label: "Set goals",
+        type: "navigation",
+      },
+    ],
+  },
+];
