@@ -52,7 +52,7 @@ function UserMenuDropDown({ children, authUserPayload }: { children: React.React
         </button>
       } />
       <DropdownMenuContent className="w-80 h-fit text-[15px] " align="start">
-        <DropdownMenuGroup >
+        <DropdownMenuGroup  >
           <DropdownMenuLabel className='flex flex-col items-center  rounded-md justify-center h-36 p-3 text-md text-white gap-5'>
             <div className="flex items-center justify-center gap-4">
               <Avatar size="xl">
@@ -65,41 +65,31 @@ function UserMenuDropDown({ children, authUserPayload }: { children: React.React
             {/* <Button>View your channel</Button> */}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => redirect('/stream')} >
+          {/* <DropdownMenuItem onClick={() => redirect('/stream')} className={'gap-4'} >
             Creator Dashboard
             <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuItem>
             Settings
             <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
+
+          {dropdownMenuItems.map((items,index)=>(
+              <DropdownMenuItem key={index} onClick={()=>{
+                if(items.label==='Creator Dashboard'){
+                  redirect('/stream')
+                }
+              }} className={'text-md h-10'}>
+              {items.label}
+              <DropdownMenuShortcut>{items.shortcut}</DropdownMenuShortcut>
+            </DropdownMenuItem> 
+          ))}
+
+
         </DropdownMenuGroup>
-        {/* <DropdownMenuSeparator /> */}
-        {/* <DropdownMenuGroup>
-          <DropdownMenuItem>Team</DropdownMenuItem>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>Invite users</DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem>Email</DropdownMenuItem>
-                <DropdownMenuItem>Message</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>More...</DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-          <DropdownMenuItem>
-            New Team
-            <DropdownMenuShortcut>⌘+T</DropdownMenuShortcut>
-          </DropdownMenuItem>
-        </DropdownMenuGroup> */}
+      
         <DropdownMenuSeparator />
-        {/* <DropdownMenuGroup>
-          <DropdownMenuItem>GitHub</DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
-          <DropdownMenuItem disabled>API</DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator /> */}
+        
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={handleLogout}>
             Log out
@@ -113,3 +103,25 @@ function UserMenuDropDown({ children, authUserPayload }: { children: React.React
 }
 
 export default UserMenuDropDown
+
+// Define an array of DropdownMenuItem items for potential dynamic rendering.
+const dropdownMenuItems = [
+  {
+    label: "Creator Dashboard",
+    onClick: () => {
+      // Example: navigate to dashboard
+      window.location.href = "/stream";
+    },
+    shortcut: "⌘B",
+    disabled: false,
+  },
+  {
+    label: "Settings",
+    onClick: () => {
+      // Example: navigate to settings
+      window.location.href = "/settings";
+    },
+    shortcut: "⌘S",
+    disabled: false,
+  },
+];

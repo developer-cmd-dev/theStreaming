@@ -1,8 +1,12 @@
+"use client"
 import { Input } from '@/components/ui/input';
 import { Separator } from '@base-ui/react/separator';
-import React from 'react'
+import { IconEye } from '@tabler/icons-react';
+import { EyeClosed } from 'lucide-react';
+import React, { useState } from 'react'
 
 function page() {
+  const [secret,setSecret]=useState<{id:number,isSecret:boolean}>()
   return (
     <div className='w-full flex flex-col  h-[95vh] '>
       <div className='text-3xl h-24 flex items-center justify-center' >
@@ -11,14 +15,14 @@ function page() {
 
       <div className='w-1/2 m-auto overflow-y-scroll  '>
         {streamSettings.map((data, index) => (
-          <div key={index} className='w-full p-5 flex flex-col gap-4 text-2xl bg-surface'>
+          <div key={index} className='w-full p-5 flex flex-col gap-2 text-2xl bg-surface'>
             <h1>{data.title}</h1>
-            <Separator/>
 
             {
               data.type === 'secret' ? ( data.fields?.map((fields,fieldId)=>(
-                <div key={fieldId}>
-                <Input className='rounded-none h-12 text-2xl' type={fields.type} value={fields.value} name={fields.name} />
+                <div key={fieldId} className='relative flex'>
+                <Input className='rounded-none h-12 text-2xl' type={secret?.id === fieldId && secret.isSecret?"text" : fields.type} value={fields.value} name={fields.name} />
+                <span onClick={()=>setSecret({id:fieldId,isSecret:secret?.isSecret ? !secret.isSecret : true})} className='absolute right-4 top-3 text-sm'><IconEye /></span>
               </div>
               ))) : (
                 data.fields?.map((fields,fieldId)=>(
