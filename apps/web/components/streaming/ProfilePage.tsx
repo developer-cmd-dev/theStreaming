@@ -6,17 +6,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useUserAuth } from '@/lib/zustandStore';
 import Link from 'next/link';
 import { Separator } from '../ui/separator';
-
-function ProfilePage() {
+import { useParams } from 'next/navigation';
+interface Props {
+    children: React.ReactNode
+}
+function ProfilePage({ children }: Props) {
     const { userPayload } = useUserAuth((state) => state)
     const [active, setActive] = useState(0)
-
+    const params = useParams();
+   
     return (
         <div className="w-full h-full flex">
 
             {/* profile menu section */}
             <div className='w-full'>
-                <div className='border relative'>
+                <div className='border relative hidden md:block'>
                     <Image
                         src={`/images/gaming_glitch_banner2.avif`}
                         alt="Gaming streaming banner"
@@ -29,7 +33,7 @@ function ProfilePage() {
 
                     <div className='rounded-sm *:rounded-sm absolute text-2xl font-bold top-1/2 left-60 -translate-x-1/2 -translate-y-1/2  h-fit w-fit bg-background p-5 flex items-center gap-3 '>
                         <span className='py-2 px-3 bg-foreground text-background'>OFFLINE</span>
-                        <span>devskickac is offline</span>
+                        <span>{userPayload?.username} is offline</span>
                     </div>
 
                 </div>
@@ -44,7 +48,7 @@ function ProfilePage() {
                         </div>
 
                         <div>
-                            <h1 className='text-xl text-text-primary font-semibold'>{userPayload?.username}</h1>
+                            <h1 className='text-xl text-text-primary font-semibold flex items-center gap-9'>{userPayload?.username}<span className='text-sm px-3 py-2 md:hidden bg-white text-text-muted rounded-md'>OFFLINE</span></h1>
                             <p className='text-sm text-text-secondary'>0 followers</p>
                             <p className='text-sm text-text-primary font-semibold'>Last lived 2 hours ago</p>
                         </div>
@@ -56,7 +60,9 @@ function ProfilePage() {
 
                         <div className='text-lg text-text-primary flex gap-4  '>
                             {profileMenuItems.map((value, index) => (
-                                <Link key={index} href={value.href} className=' hover:text-brand hover:border-b-2 border-brand '>
+                                <Link key={index} href={`/profile/${params.slug}/${value.href}`} onClick={() => setActive(index)} style={{
+                                    color: active === index ? "#53FC18" : "white",
+                                }} className=' hover:text-brand hover:border-b-2 border-brand '>
                                     {value.label}
                                 </Link>
                             ))}
@@ -67,13 +73,17 @@ function ProfilePage() {
                         <Separator />
 
                     </div>
+
+                    <div>
+                        {children}
+                    </div>
                 </div>
 
             </div>
 
 
             <div>
-                <LiveChat />
+                <LiveChat className='border-none rounded-none bg-background  hidden lg:flex lg:w-64 xl:w-100' />
 
             </div>
 
@@ -87,23 +97,23 @@ function ProfilePage() {
 const profileMenuItems = [
     {
         label: "Home",
-        href: "/profile/home",
+        href: "",
     },
     {
         label: "About",
-        href: "/profile/about",
+        href: "about",
     },
     {
         label: "Videos",
-        href: "/profile/videos",
+        href: "videos",
     },
     {
         label: "Clips",
-        href: "/profile/clips",
+        href: "clips",
     },
     {
         label: "Schedule",
-        href: "/profile/schedule",
+        href: "schedule",
     }
 ];
 

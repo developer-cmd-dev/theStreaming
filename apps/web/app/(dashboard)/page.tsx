@@ -17,10 +17,7 @@ import {
   trendingStreams,
 } from "@/lib/mock-data";
 import CreatorCard from "@/components/streaming/CreatorCard";
-import { axiosHandler, AxiosPayload } from '@repo/axios'
-import { HttpResponse, PublicUser } from '@repo/zod/schema'
-import { CustomError } from '@repo/customError'
-import { cookies } from 'next/headers'
+
 
 
 

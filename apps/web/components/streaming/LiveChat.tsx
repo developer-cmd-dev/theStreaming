@@ -4,6 +4,7 @@ import { IconChevronDown, IconSend } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { chatMessages, type ChatMessage } from "@/lib/mock-data";
+import { cn } from "@/lib/utils";
 
 const EXTRA_MESSAGES = [
   { username: "RandomUser", color: "#FF6B9D", message: "W stream 🔥" },
@@ -12,7 +13,10 @@ const EXTRA_MESSAGES = [
   { username: "Chatter", color: "#69F0AE", message: "how long you streaming?" },
 ];
 
-export default function LiveChat() {
+interface Props{
+  className?:string
+}
+export default function LiveChat({className}:Props) {
   const [messages, setMessages] = useState<ChatMessage[]>(chatMessages);
   const [input, setInput] = useState("");
   const [showNewMessages, setShowNewMessages] = useState(false);
@@ -80,7 +84,7 @@ export default function LiveChat() {
   };
 
   return (
-    <div className="flex h-full min-h-[280px] flex-col overflow-hidden rounded-xl border border-border bg-surface lg:min-h-0">
+    <div className={cn("flex h-full min-h-[280px] flex-col overflow-hidden rounded-xl border border-border bg-surface lg:min-h-0",className)}>
       <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
         <h3 className="text-sm font-semibold text-text-primary">Chat</h3>
         <span className="flex items-center gap-1.5 text-xs text-text-muted">
