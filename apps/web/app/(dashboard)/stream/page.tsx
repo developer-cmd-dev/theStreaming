@@ -1,7 +1,8 @@
 import LiveChat from '@/components/streaming/LiveChat'
 import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
-import { IconAlertSquareRounded, IconHandThreeFingers, IconInfoCircle, IconVideo } from '@tabler/icons-react'
+import { IconAlertSquareRounded, IconChevronRight, IconHandThreeFingers, IconInfoCircle, IconVideo } from '@tabler/icons-react'
 import Image from 'next/image'
 import React from 'react'
 
@@ -64,15 +65,18 @@ function page() {
               {
                 channelActionSections.map((value, index) => (
 
-                  <>
-                    <div key={index} className='w-full flex flex-col gap-3 py-3'>
+                  < div key={index}>
+                    <div  className='w-full flex flex-col gap-3 py-3'>
                       <h1 className='text-xl'>{value.title}</h1>
                       {value.items.map((items, id) => (
-                        <p key={id} className='text-text-secondary text-md'>{items.label}</p>
+                        <div key={id} className='flex items-center w-full justify-between'>
+                          <p  className='text-text-secondary text-sm'>{items.label}</p>
+                          {items.type === 'navigation' ? (<span className=' text-sm flex items-center justify-center text-text-secondary'>{items.value} <IconChevronRight/></span>):(<Switch />)}
+                        </div>
                       ))}
                     </div>
                     <Separator />
-                  </>
+                  </div>
 
 
                 ))
