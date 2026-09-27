@@ -9,9 +9,11 @@ import { useUserAuth } from '@/lib/zustandStore'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import Link from 'next/link';
+import { redirect } from 'next/navigation'
 function UserMenuDropDown({ children, authUserPayload }: { children: React.ReactElement, authUserPayload: PublicUser }) {
 
   const { logout, userPayload } = useUserAuth((state) => state)
+
 
   async function handleLogout() {
 
@@ -44,7 +46,11 @@ function UserMenuDropDown({ children, authUserPayload }: { children: React.React
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={children} />
+      <DropdownMenuTrigger render={
+        <button type="button" className="cursor-pointer">
+          {children}
+        </button>
+      } />
       <DropdownMenuContent className="w-80 h-fit text-[15px] " align="start">
         <DropdownMenuGroup >
           <DropdownMenuLabel className='flex flex-col items-center  rounded-md justify-center h-36 p-3 text-md text-white gap-5'>
@@ -59,7 +65,7 @@ function UserMenuDropDown({ children, authUserPayload }: { children: React.React
             {/* <Button>View your channel</Button> */}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => redirect('/stream')} >
             Creator Dashboard
             <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
           </DropdownMenuItem>
