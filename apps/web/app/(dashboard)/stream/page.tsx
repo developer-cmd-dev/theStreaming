@@ -1,4 +1,4 @@
-'use client'
+import CreateStreamDialog from '@/components/streaming/CreateStreamDialog'
 import LiveChat from '@/components/streaming/LiveChat'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -6,32 +6,20 @@ import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import { IconAlertSquareRounded, IconChevronRight, IconHandThreeFingers, IconInfoCircle, IconVideo } from '@tabler/icons-react'
 import Image from 'next/image'
-import React, { useEffect, useState } from 'react'
 
 
 const sessionInfoItems = ['Session', 'Viewers', 'Followers', 'Sub Counts', 'Time Live']
 
 function page() {
 
-  const [windowWidth, setWindowWidth] = useState({ width: typeof window !== 'undefined' ? window.innerWidth : 0 });
 
-
-  useEffect(() => {
-
-    function handleResize() {
-      setWindowWidth({ width: window.innerWidth });
-    }
-
-    handleResize();
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  return(
+    <>
+    <div className='w-full min-[769px]:hidden  text-4xl font-bold flex items-center justify-center '><h1>Use Tablet or Bigger Screen</h1></div>
 
 
 
-
-
-  return (windowWidth.width <= 768 ? (<div className='w-full h-[95vh] text-4xl font-bold flex items-center justify-center '><h1>Use Tablet or Bigger Screen</h1></div>) : (<div className="bg-black w-full h-[95vh] p-2 flex flex-1 gap-2 ">
+    <div className="bg-black w-full  p-2 hidden min-[769px]:flex  flex-1 gap-2  ">
     {/* left */}
 
     <div className='w-1/2 flex flex-col gap-2 h-full'>
@@ -72,15 +60,17 @@ function page() {
 
       <div className=' w-1/2 h-full flex flex-col gap-2 '>
         <div className='h-1/3 w-full bg-brand-foreground rounded-sm flex flex-col flex-1 '>
-         <div className='h-fit'>
-         <Heading title='Stream Info' icon={<IconInfoCircle />} className='h-11' />
-         <Separator />
-         </div>
+          <div className='h-fit'>
+            <Heading title='Stream Info' icon={<IconInfoCircle />} className='h-11' />
+            <Separator />
+          </div>
 
-         <div className='h-full  flex items-center justify-center '>
-          <Button>Create Stream</Button>
-         </div>
-       
+          <div className='h-full  flex items-center justify-center '>
+            <CreateStreamDialog>
+              <span className='bg-brand px-3 py-2 text-background rounded-md text-sm font-semibold hover:bg-foreground cursor-pointer transition ease-in-out delay-100 '>Create Stream</span>
+            </CreateStreamDialog>
+          </div>
+
 
         </div>
 
@@ -118,7 +108,12 @@ function page() {
 
       </div>
     </div>
-  </div>))
+  </div>
+    </>
+  )
+
+
+
 
 
 
