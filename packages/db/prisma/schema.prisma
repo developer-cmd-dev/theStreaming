@@ -50,6 +50,7 @@ model Stream {
   isLive         Boolean
   thumbnail      String?
   playBackKey    String?
+  active         Boolean @default(true)
   like           Int        @default(0)
   dislike        Int        @default(0)
   viewers        Int        @default(0)

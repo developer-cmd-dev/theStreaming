@@ -1,12 +1,14 @@
 "use client"
 import { Input } from '@/components/ui/input';
+import { useStreamState } from '@/lib/zustandStore';
 import { Separator } from '@base-ui/react/separator';
 import { IconEye } from '@tabler/icons-react';
 import { EyeClosed } from 'lucide-react';
 import React, { useState } from 'react'
 
 function page() {
-  const [secret,setSecret]=useState<{id:number,isSecret:boolean}>()
+  const [secret, setSecret] = useState<{ id: number, isSecret: boolean }>()
+  const { currentStreamState } = useStreamState((state) => state)
   return (
     <div className='w-full flex flex-col  h-[95vh] '>
       <div className='text-3xl h-24 flex items-center justify-center' >
@@ -19,17 +21,17 @@ function page() {
             <h1>{data.title}</h1>
 
             {
-              data.type === 'secret' ? ( data.fields?.map((fields,fieldId)=>(
+              data.type === 'secret' ? (data.fields?.map((fields, fieldId) => (
                 <div key={fieldId} className='relative flex'>
-                <Input className='rounded-none h-12 text-2xl' type={secret?.id === fieldId && secret.isSecret?"text" : fields.type} value={fields.value} name={fields.name} />
-                <span onClick={()=>setSecret({id:fieldId,isSecret:secret?.isSecret ? !secret.isSecret : true})} className='absolute right-4 top-3 text-sm'><IconEye /></span>
-              </div>
-              ))) : (
-                data.fields?.map((fields,fieldId)=>(
-                  <div key={fieldId}>
-                  <label className='text-sm'>{fields.label}</label>
-                  <Input className='rounded-none h-12 text-2xl' type={fields.type} value={fields.value} name={fields.name} />
+                  <Input className='rounded-none h-12 text-2xl' type={secret?.id === fieldId && secret.isSecret ? "text" : fields.type} value={fields.name==='streamKey'?currentStreamState?.id:fields.value} name={fields.name} />
+                  <span onClick={() => setSecret({ id: fieldId, isSecret: secret?.isSecret ? !secret.isSecret : true })} className='absolute right-4 top-3 text-sm'><IconEye /></span>
                 </div>
+              ))) : (
+                data.fields?.map((fields, fieldId) => (
+                  <div key={fieldId}>
+                    <label className='text-sm'>{fields.label}</label>
+                    <Input className='rounded-none h-12 text-2xl' type={fields.type} value={fields.value} name={fields.name} />
+                  </div>
                 ))
               )
             }
@@ -71,7 +73,7 @@ const streamSettings: StreamSetting[] = [
       {
         name: "streamUrl",
         type: "password",
-        value: "rtmp://your-server/live",
+        value: "rtmp://localhost:1935/stream",
         showToggle: true,
       },
     ],

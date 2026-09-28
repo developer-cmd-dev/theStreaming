@@ -5,7 +5,8 @@ export const streamSchema = z.object({
   id: z.string().uuid(),
   title: z.string(),
   description: z.string().optional(),
-  isLive: z.boolean().default(true),
+  active :z.boolean().default(true),
+  isLive: z.boolean().default(false),
   thumbnail: z.file().optional(),
   subscriberOnly:z.boolean().default(false),
   createdAt: z.coerce.date(),
@@ -19,6 +20,7 @@ export const createStreamSchema = streamSchema.pick({
   title:true,
   description:true,
   thumbnail:true,
+  active:true,
   subscriberOnly:true,
   isLive:true,
 })
@@ -36,6 +38,15 @@ export const updateStreamSchema = streamSchema.partial().extend({
 });
 
 // Types
+export type CreatedStreamState ={
+  id:string
+  title:string,
+  description?: string;
+  thumbnail?: string; // 'thumbnail' field as File since streamSchema uses z.file()
+  subscriberOnly: boolean;
+  active:boolean;
+  isLive: boolean;
+}
 export type Stream = z.infer<typeof streamSchema>;
 export type CreateStreamInput = z.infer<typeof createStreamSchema>;
 export type UpdateStreamInput = z.infer<typeof updateStreamSchema>;

@@ -15,22 +15,21 @@ import { cloudinaryUpload } from "../lib/cloudinaryUpload";
 
 export async function createStream(req: Request, res: Response) {
 
-  
-        const { data: streamConfig, error } = createStreamSchema.safeParse(req.body);
-        const fileData = req.file;
 
-        if (!fileData) throw new CustomError('No thumbnail file uploaded. Please provide a thumbnail image for your stream.', 400);
-   
+    const { data: streamConfig, error } = createStreamSchema.safeParse(req.body);
+    const fileData = req.file;
 
-        if (error) {
-            const errorMessage = JSON.parse(error.message)[0].message
-            throw new CustomError(errorMessage, 422);
-        }
+    if (!fileData) throw new CustomError('No thumbnail file uploaded. Please provide a thumbnail image for your stream.', 400);
 
-        try {
-            console.log(fileData)
 
-          const thumbnailUploadRespnose = await  cloudinaryUpload(fileData)
+    if (error) {
+        const errorMessage = JSON.parse(error.message)[0].message
+        throw new CustomError(errorMessage, 422);
+    }
+
+    try {
+
+        const thumbnailUploadRespnose = await cloudinaryUpload(fileData)
 
         const response = await prisma.stream.create({
             data: {
@@ -43,13 +42,26 @@ export async function createStream(req: Request, res: Response) {
             }
         })
 
-        HttpResponse.success(res, { streamId: response.id });
+        HttpResponse.success(res, response);
     } catch (error) {
-        console.log(error)
         throw new CustomError("Failed to create stream", 500)
     }
 
 }
+
+export async function getActiveStream(req: Request, res: Response) {
+
+    const activeStream =await prisma.stream.findMany({
+        where:{
+            userId:req.userId,
+            active: true
+        }
+    })
+
+    HttpResponse.success(res,activeStream);
+
+}
+    
 
 
 export async function connectMediaServer(req: Request, res: Response) {
@@ -101,41 +113,41 @@ export async function connectMediaServer(req: Request, res: Response) {
 
 export async function startRecordingStream(req: Request, res: Response) {
 
-        const streamId = req.params.streamId
+    const streamId = req.params.streamId
 
 
-        if (!streamId) {
-            throw new CustomError("Invalid Id", 404);
+    if (!streamId) {
+        throw new CustomError("Invalid Id", 404);
+    }
+
+    if (Array.isArray(streamId)) {
+        throw new CustomError("Data is in array", 404)
+    }
+
+    const recordedFileName = await recordStreaming(streamId, res);
+    if (!recordedFileName) {
+        res.write(`data:${sseResponse("ERROR:FAILED TO RECORD STREAM", 400)}\n\n`);
+        res.end();
+        return;
+    }
+
+    if (recordedFileName) {
+        const localDir = await convertRecordedInToHLS(recordedFileName, streamId);
+        const result = await uploadFolder(localDir, streamId, res);
+        if (result) {
+            await prisma.stream.update({
+                where: {
+                    id: streamId
+                },
+                data: {
+                    playBackKey: result,
+                    isLive: false
+                }
+
+            })
         }
-
-        if (Array.isArray(streamId)) {
-            throw new CustomError("Data is in array", 404)
-        }
-
-        const recordedFileName = await recordStreaming(streamId, res);
-        if(!recordedFileName){
-            res.write(`data:${sseResponse("ERROR:FAILED TO RECORD STREAM",400)}\n\n`);
-            res.end();
-            return;
-        }
-
-        if (recordedFileName) {
-            const localDir = await convertRecordedInToHLS(recordedFileName, streamId);
-            const result = await uploadFolder(localDir, streamId, res);
-            if (result) {
-                await prisma.stream.update({
-                    where: {
-                        id: streamId
-                    },
-                    data: {
-                        playBackKey: result,
-                        isLive: false
-                    }
-
-                })
-            }
-        }
-        HttpResponse.success(res,null)
+    }
+    HttpResponse.success(res, null)
 }
 
 export async function endStream(req: Request, res: Response) {
@@ -189,7 +201,7 @@ export async function deleteStream(req: Request, res: Response) {
         const response = await deleteStreamDataB2(streamId)
 
         if (response) {
-            HttpResponse.success(res,null, "Stream Deleted");
+            HttpResponse.success(res, null, "Stream Deleted");
         }
 
     } catch (error) {

@@ -20,7 +20,8 @@ export {
   streamSchema,
   type Stream,
   type CreateStreamInput,
-  type UpdateStreamInput
+  type UpdateStreamInput,
+  type CreatedStreamState
 } from "./schema/stream"
 
 

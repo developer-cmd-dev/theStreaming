@@ -1,4 +1,4 @@
-import { PublicUser } from '@repo/zod/schema';
+import { PublicUser,CreatedStreamState } from '@repo/zod/schema';
 import {create} from 'zustand';
 
 type UserAuthState = {
@@ -12,3 +12,15 @@ export const useUserAuth = create<UserAuthState>(set => ({
   setUserPaylod:(data:PublicUser)=>set(state=>({userPayload:data})),
   logout:()=>set(state=>({userPayload:null}))
 }));
+
+
+type CurrentStreamState = {
+    currentStreamState: CreatedStreamState | null;
+    setCurrentStreamState: (data:CreatedStreamState) => void;
+};
+
+
+export const useStreamState = create<CurrentStreamState>(set=>({
+  currentStreamState:null,
+  setCurrentStreamState:(data)=>set(state=>({currentStreamState:data}))
+}))

@@ -2,11 +2,10 @@ import { Router, type Response } from "express";
 import { healthCheck } from "../controller/healthcheck.controller";
 import { getUserInfo, login, logout, refreshToken, signUp } from "../controller/auth.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
-import { createStream,connectMediaServer,endStream, startRecordingStream, deleteStream,updateStreamOnLive, obsStream} from "../controller/streaming.controller";
+import { createStream,connectMediaServer,endStream, startRecordingStream, deleteStream,updateStreamOnLive, obsStream, getActiveStream} from "../controller/streaming.controller";
 import { liveStreams } from "../controller/dashboard.controller";
 import { searchUser } from "../controller/search.controller";
 import { authenticateAgentUser, connectToTheAIagent, saveAgentChats } from "../controller/agent.controller";
-import { prisma } from "@repo/db/prisma";
 import {  googleAuthCodeVerifier } from "../controller/oAuth.controller";
 import {  upload } from "../middleware/multer.middleware";
 
@@ -26,6 +25,7 @@ router.get('/search-user',searchUser)
 
 // Stream routes
 router.post('/stream',authMiddleware,upload.single('thumbnail'),createStream);
+router.get('/stream',authMiddleware,getActiveStream)
 router.post('/connect-media-server',authMiddleware,connectMediaServer);
 router.post('/end-stream/:streamId',authMiddleware,endStream)
 router.get('/record-streaming/:streamId',startRecordingStream);

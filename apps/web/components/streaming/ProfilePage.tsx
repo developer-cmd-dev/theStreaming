@@ -7,6 +7,7 @@ import { useUserAuth } from '@/lib/zustandStore';
 import Link from 'next/link';
 import { Separator } from '../ui/separator';
 import { useParams } from 'next/navigation';
+import StreamStatus from './StreamStatus';
 interface Props {
     children: React.ReactNode
 }
@@ -31,10 +32,7 @@ function ProfilePage({ children }: Props) {
                         className="h-auto w-full"
                     />
 
-                    <div className='rounded-sm *:rounded-sm absolute text-2xl font-bold top-1/2 left-60 -translate-x-1/2 -translate-y-1/2  h-fit w-fit bg-background p-5 flex items-center gap-3 '>
-                        <span className='py-2 px-3 bg-foreground text-background'>OFFLINE</span>
-                        <span>{userPayload?.username} is offline</span>
-                    </div>
+                    <StreamStatus data={userPayload?.username ?? ""}/>
 
                 </div>
 
