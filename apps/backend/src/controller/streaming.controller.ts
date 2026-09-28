@@ -7,16 +7,20 @@ import axios, { AxiosError } from 'axios';
 import { connectMediaServerSchema } from "../../../../packages/zod/schema/stream";
 import { recordStreaming, sseResponse } from "../lib/ffmpeg_record_streaming.refactored";
 import { convertRecordedInToHLS } from "../lib/ffmpeg_convert_recording_hls";
-import { uploadFolder } from "../lib/upload_hls_b2";
+import { uploadFile, uploadFolder } from "../lib/upload_hls_b2";
 
 import { deleteStreamDataB2 } from "../lib/delete_hls_b2";
 import { axiosHandler } from "../lib/axios";
+import { cloudinaryUpload } from "../lib/cloudinaryUpload";
 
 export async function createStream(req: Request, res: Response) {
 
   
         const { data: streamConfig, error } = createStreamSchema.safeParse(req.body);
+        const fileData = req.file;
 
+        if (!fileData) throw new CustomError('No thumbnail file uploaded. Please provide a thumbnail image for your stream.', 400);
+   
 
         if (error) {
             const errorMessage = JSON.parse(error.message)[0].message
@@ -24,11 +28,15 @@ export async function createStream(req: Request, res: Response) {
         }
 
         try {
+            console.log(fileData)
+
+          const thumbnailUploadRespnose = await  cloudinaryUpload(fileData)
+
         const response = await prisma.stream.create({
             data: {
                 title: streamConfig.title,
                 description: streamConfig.description,
-                thumbnail: streamConfig.thumbnail,
+                thumbnail: thumbnailUploadRespnose.url,
                 isLive: streamConfig.isLive,
                 subscriberOnly: streamConfig.subscriberOnly,
                 userId: req.userId

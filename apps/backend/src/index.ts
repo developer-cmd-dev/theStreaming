@@ -6,6 +6,8 @@ import cookieParser from 'cookie-parser'
 import cluster from 'cluster';
 import os from 'os'
 import redisClient from '@repo/redis/redisClient';
+import './config/cloudinary';
+
 
 
 // const numCPUs = os.availableParallelism ? os.availableParallelism() : os.cpus().length;

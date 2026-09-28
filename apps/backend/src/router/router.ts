@@ -8,6 +8,7 @@ import { searchUser } from "../controller/search.controller";
 import { authenticateAgentUser, connectToTheAIagent, saveAgentChats } from "../controller/agent.controller";
 import { prisma } from "@repo/db/prisma";
 import {  googleAuthCodeVerifier } from "../controller/oAuth.controller";
+import {  upload } from "../middleware/multer.middleware";
 
 
 const router = Router();
@@ -24,11 +25,11 @@ router.get('/',liveStreams)
 router.get('/search-user',searchUser)
 
 // Stream routes
-router.post('/create-stream',authMiddleware,createStream);
+router.post('/stream',authMiddleware,upload.single('thumbnail'),createStream);
 router.post('/connect-media-server',authMiddleware,connectMediaServer);
 router.post('/end-stream/:streamId',authMiddleware,endStream)
 router.get('/record-streaming/:streamId',startRecordingStream);
-router.delete('/delete-stream',authMiddleware,deleteStream);
+router.delete('/stream',authMiddleware,deleteStream);
 router.patch('/update-on-live',authMiddleware,updateStreamOnLive);
 router.get('/internal/get-obs-stream',obsStream);
 

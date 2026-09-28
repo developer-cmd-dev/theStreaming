@@ -6,9 +6,15 @@ import path from 'path';
 import type { Response } from 'express';
 
 export function getContentType(filename: string): string {
-    if (filename.endsWith(".m3u8")) return "application/vnd.apple.mpegurl";
-    if (filename.endsWith(".ts")) return "video/MP2T";
-    return "application/octet-stream";
+     
+if (filename.endsWith(".m3u8")) return "application/vnd.apple.mpegurl";
+if (filename.endsWith(".ts")) return "video/MP2T";
+if (filename.endsWith(".png")) return "image/png";
+if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) return "image/jpeg";
+if (filename.endsWith(".webp")) return "image/webp";
+if (filename.endsWith(".avif")) return "image/avif";
+
+return "application/octet-stream";
 }
 
 

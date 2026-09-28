@@ -6,7 +6,7 @@ export const streamSchema = z.object({
   title: z.string(),
   description: z.string().optional(),
   isLive: z.boolean().default(true),
-  thumbnail: z.string().optional(),
+  thumbnail: z.file().optional(),
   subscriberOnly:z.boolean().default(false),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
