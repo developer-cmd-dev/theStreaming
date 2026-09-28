@@ -34,15 +34,14 @@ export async function axiosHandler<T=any>(data:AxiosPayload):Promise<T> {
         return response.data as T
     } catch (error) {
         if (error instanceof AxiosError) {
-  
-
             const status = error.response?.status ?? 500;
            
             const message = typeof error.response?.data == "object" ?
                             error.response.data.message :
                             error.message ||
-                            "Something went wrong"
-            throw new CustomError(message,status)    
+                            "Something went wrong";
+
+            throw new CustomError(message,status)
             
         }
 

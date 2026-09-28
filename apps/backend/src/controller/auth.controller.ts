@@ -5,6 +5,7 @@ import { prisma } from '@repo/db/prisma'
 import HttpResponse from "../utils/HttpResponse";
 import { loginUserScheam, logOutUserSchema } from "../../../../packages/zod/schema/user";
 import jwt, { JsonWebTokenError } from "jsonwebtoken";
+import redisClient from "@repo/redis/redisClient";
 
 
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY as string;
@@ -57,7 +58,7 @@ export async function signUp(req: Request, res: Response) {
 
 
 
-    
+
 }
 
 
@@ -79,11 +80,11 @@ export async function login(req: Request, res: Response) {
 
     if (!getUser) throw new CustomError("User not found!", 404);
 
-    if(!getUser.password){
+    if (!getUser.password) {
         throw new CustomError("Please use Google login.", 400);
     }
 
-    const verifyPassword = await Bun.password.verify(userCredential.password, getUser.password??'');
+    const verifyPassword = await Bun.password.verify(userCredential.password, getUser.password ?? '');
     if (!verifyPassword) {
         throw new CustomError("Invalid password!", 401);
     }
@@ -127,15 +128,15 @@ export async function login(req: Request, res: Response) {
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
 
     })
-    res.cookie("access_token",access_token,{
+    res.cookie("access_token", access_token, {
         httpOnly: true,
         secure: true,
         sameSite: "strict",
         maxAge: 3 * 60 * 60 * 1000 // 3 hours
-      })
+    })
 
     const { data: responseData } = publicUserSchema.safeParse(getUser);
-
+    await redisClient.set(getUser.id,JSON.stringify(responseData));
     HttpResponse.success(res, responseData);
 }
 
@@ -143,18 +144,18 @@ export async function login(req: Request, res: Response) {
 export async function logout(req: Request, res: Response) {
 
 
-    const { data: userId, error } = logOutUserSchema.safeParse(req.body);
+    const { data, error } = logOutUserSchema.safeParse(req.body);
     if (error) {
         throw new CustomError("Invalid Input", 400);
     }
 
-    if (!userId)
+    await redisClient.del(data.id);
 
-        await prisma.refreshToken.delete({
-            where: {
-                userId
-            }
-        })
+    await prisma.refreshToken.delete({
+        where: {
+            userId: data.id
+        }
+    })
     res.clearCookie('refresh_token');
     res.clearCookie('access_token');
 
@@ -181,26 +182,36 @@ export async function refreshToken(req: Request, res: Response) {
 
 
 
-export async function getUserInfo(req:Request,res:Response) {
-    
+export async function getUserInfo(req: Request, res: Response) {
+
     const userId = req.userId;
 
     try {
-        const user =await prisma.user.findFirst({
-            where:{
-                id:userId
-            }
-        })
 
-        if(!user){
-        throw new CustomError("User not found", 404);
-   
+        const cachedUser = await redisClient.get(userId);
+        if (!cachedUser) {
+            const user = await prisma.user.findFirst({
+                where: {
+                    id: userId
+                }
+            })
+
+            if (!user) {
+                throw new CustomError("User not found", 404);
+
+            }
+            const { data } = publicUserSchema.safeParse(user);
+            redisClient.set(userId, JSON.stringify(user));
+            HttpResponse.success(res, data);
+
+
+        } else {
+            HttpResponse.success(res, JSON.parse(cachedUser))
         }
 
 
-        const {data}=publicUserSchema.safeParse(user);
 
-        HttpResponse.success(res,data);
+
     } catch (error) {
         throw new CustomError("Failed to fetch user info", 500);
     }

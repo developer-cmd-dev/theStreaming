@@ -18,6 +18,7 @@
     "@aws-sdk/client-s3": "^3.1083.0",
     "@repo/db": "*",
     "@repo/zod": "*",
+    "@repo/redis":"*",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

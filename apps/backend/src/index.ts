@@ -5,6 +5,7 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import cluster from 'cluster';
 import os from 'os'
+import redisClient from '@repo/redis/redisClient';
 
 
 // const numCPUs = os.availableParallelism ? os.availableParallelism() : os.cpus().length;
@@ -35,12 +36,24 @@ app.use(cors({
 app.use(cookieParser())
 
 app.use("/api/v1", router)
-app.use(ErrorMiddleware)
-app.listen(port, (error) => {
-    if (error) {
-        console.log(error);
-        return;
-    }
+app.use(ErrorMiddleware);
 
-    console.log(`Server is running on ${port}`)
+
+redisClient.connect().then(()=>{
+    console.log('Redis connected');
+    app.listen(port, async (error) => {
+        if (error) {
+            console.log(error);
+            return;
+        }
+    
+    
+        console.log(`Server is running on ${port}`)
+    })
+
+}).catch((error)=>{
+    console.log(error);
+    return
 })
+
+

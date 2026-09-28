@@ -62,17 +62,9 @@ function UserMenuDropDown({ children, authUserPayload }: { children: React.React
 
             </div>
             <Link className="border px-3 py-1 rounded-md bg-foreground text-secondary" href={`/profile/${userPayload?.username}`}>View your channel</Link>
-            {/* <Button>View your channel</Button> */}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {/* <DropdownMenuItem onClick={() => redirect('/stream')} className={'gap-4'} >
-            Creator Dashboard
-            <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Settings
-            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-          </DropdownMenuItem> */}
+
 
           {dropdownMenuItems.map((items,index)=>(
               <DropdownMenuItem key={index} onClick={()=>{

@@ -8,7 +8,7 @@ import { axiosHandler, AxiosPayload } from '@repo/axios'
 import { CustomError } from '@repo/customError'
 import { HttpResponse, PublicUser } from '@repo/zod/schema'
 import React, { useEffect, useState } from 'react'
-
+import {HTTP_BACKEND_URL} from '@/utils/env'
 function DashLayout({ children }: { children: React.ReactNode }) {
 
 
@@ -24,7 +24,7 @@ function DashLayout({ children }: { children: React.ReactNode }) {
             if (!userPayload) {
                 try {
                     const payload: AxiosPayload = {
-                        url: 'http://localhost:3001/api/v1/get-user',
+                        url: `${HTTP_BACKEND_URL}/get-user`,
                         method: "GET",
                         withCredentials: true
                     }
@@ -33,9 +33,10 @@ function DashLayout({ children }: { children: React.ReactNode }) {
                     setUserPaylod(response.data);
                 } catch (error) {
                     if (error instanceof CustomError) {
-                        console.log(error.message);
+
+                        
                     }
-                    throw error;
+
                 }
             }
 
