@@ -58,8 +58,35 @@ export const googleAuthCodeVerifier = async (req: Request, res: Response) => {
 
     if (existedUser) {
       const {data,error}=publicUserSchema.safeParse(existedUser);
-      console.log(data)
+      if(error){
+        throw new CustomError('Something went wrong', 400);
+      }
       const { access_token, refresh_token } = generateToken({ userId: existedUser.id, username: existedUser.username });
+
+      const getExistedRefreshToken =await prisma.refreshToken.findFirst({
+        where: {
+          userId:existedUser.id
+        }
+      })
+
+      if(getExistedRefreshToken){
+        await prisma.refreshToken.update({
+          where:{
+            userId:existedUser.id
+          },
+          data:{
+            token:refresh_token
+          }
+        })
+      }else{
+        await prisma.refreshToken.create({
+          data:{
+            token:refresh_token,
+            userId:existedUser.id
+          }
+        })
+      }
+
       setTokenCookie(res, refresh_token, access_token)
       HttpResponse.success(res, data);
       return
@@ -69,7 +96,6 @@ export const googleAuthCodeVerifier = async (req: Request, res: Response) => {
       }
     }
 
-    console.log(googleUserInfo.data.picture)
 
     const username = googleUserInfo.data.email.substring(0, googleUserInfo.data.email.indexOf("@"));
 
@@ -135,7 +161,7 @@ function setTokenCookie(res: Response, refresh_token: string, access_token: stri
     httpOnly: true,
     secure: true,
     sameSite: "strict",
-    maxAge: 3 * 60 * 60 * 1000 // 3 hours
+    maxAge: 12 * 60 * 60 * 1000 // 12 hours
   })
 
   return response
@@ -144,7 +170,7 @@ function setTokenCookie(res: Response, refresh_token: string, access_token: stri
 
 function generateToken(userPayload: { userId: string, username: string }): { access_token: string, refresh_token: string } {
 
-  const access_token = jwt.sign(userPayload, JWT_SECRET_KEY, { expiresIn: "1m" });
+  const access_token = jwt.sign(userPayload, JWT_SECRET_KEY, { expiresIn: "12h" });
   const refresh_token = jwt.sign(userPayload, JWT_SECRET_KEY, { expiresIn: "30d" });
   return { refresh_token, access_token }
 } 

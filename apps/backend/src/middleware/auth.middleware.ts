@@ -21,7 +21,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
               try {
                   const payload = <jwt.UserJwtPayload> jwt.verify(refresh_token, JWT_SECRET_KEY);
                   req.userId=payload.userId;
-                  next()
+                  return next()
               }catch(error){
                 if(error instanceof JsonWebTokenError){
                     if(error.message==='TokenExpiredError'){

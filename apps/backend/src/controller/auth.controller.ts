@@ -6,6 +6,8 @@ import HttpResponse from "../utils/HttpResponse";
 import { loginUserScheam, logOutUserSchema } from "../../../../packages/zod/schema/user";
 import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import redisClient from "@repo/redis/redisClient";
+import * as ts from "typescript";
+import tryConvertScriptKindName = ts.server.tryConvertScriptKindName;
 
 
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY as string;
@@ -125,6 +127,7 @@ export async function login(req: Request, res: Response) {
         httpOnly: true,
         secure: true,
         sameSite: "strict",
+        priority:"high",
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
 
     })
@@ -132,7 +135,8 @@ export async function login(req: Request, res: Response) {
         httpOnly: true,
         secure: true,
         sameSite: "strict",
-        maxAge: 3 * 60 * 60 * 1000 // 3 hours
+        priority:"high",
+        maxAge: 12 * 60 * 60 * 1000 // 3 hours
     })
 
     const { data: responseData } = publicUserSchema.safeParse(getUser);
@@ -149,17 +153,30 @@ export async function logout(req: Request, res: Response) {
         throw new CustomError("Invalid Input", 400);
     }
 
-    await redisClient.del(data.id);
 
-    await prisma.refreshToken.delete({
-        where: {
-            userId: data.id
+
+    try {
+        await redisClient.del(data.id);
+
+        const getExistedRefreshToken =await prisma.refreshToken.findFirst({
+            where: {
+                userId:data?.id
+            }
+        })
+        if(getExistedRefreshToken){
+           await prisma.refreshToken.delete({
+               where:{
+                   userId:data.id
+               }
+           })
         }
-    })
-    res.clearCookie('refresh_token');
-    res.clearCookie('access_token');
+        res.clearCookie('refresh_token');
+        res.clearCookie('access_token');
 
-    HttpResponse.success(res, {}, "Success");
+        HttpResponse.success(res, {}, "Success");
+    }catch (e) {
+        throw new CustomError("Error logging out!", 500);
+    }
 
 
 }
@@ -169,7 +186,7 @@ export async function refreshToken(req: Request, res: Response) {
     if (refreshToken) {
         try {
             const verify = <jwt.UserJwtPayload>jwt.verify(refreshToken, JWT_SECRET_KEY)
-            const access_token = jwt.sign({ userId: verify?.userId, username: verify.username }, JWT_SECRET_KEY, { expiresIn: "1m" })
+            const access_token = jwt.sign({ userId: verify?.userId, username: verify.username }, JWT_SECRET_KEY, { expiresIn: "12h" })
             HttpResponse.success(res, { access_token })
         } catch (error) {
             if (error instanceof JsonWebTokenError) {
@@ -201,14 +218,17 @@ export async function getUserInfo(req: Request, res: Response) {
             const { data } = publicUserSchema.safeParse(user);
             await redisClient.set(userId, JSON.stringify(user));
             HttpResponse.success(res, data);
+            return;
 
-
-        } else {
+        }
             const data = JSON.parse(cachedUser);
             HttpResponse.success(res, data);
-        }
+            return;
+
     } catch (error) {
-        console.log(error);
+        if(error instanceof CustomError){
+            throw new CustomError(error.message, error.statusCode);
+        }
         throw new CustomError("Failed to fetch user info", 500);
     }
 
