@@ -55,6 +55,7 @@ redisClient.connect().then(()=>{
 
 }).catch((error)=>{
     console.log(error);
+
     return
 })
 

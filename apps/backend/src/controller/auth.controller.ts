@@ -187,8 +187,7 @@ export async function getUserInfo(req: Request, res: Response) {
     const userId = req.userId;
 
     try {
-
-        const cachedUser = await redisClient.get(userId);
+        const cachedUser = await redisClient.get(userId)
         if (!cachedUser) {
             const user = await prisma.user.findFirst({
                 where: {
@@ -198,21 +197,18 @@ export async function getUserInfo(req: Request, res: Response) {
 
             if (!user) {
                 throw new CustomError("User not found", 404);
-
             }
             const { data } = publicUserSchema.safeParse(user);
-            redisClient.set(userId, JSON.stringify(user));
+            await redisClient.set(userId, JSON.stringify(user));
             HttpResponse.success(res, data);
 
 
         } else {
-            HttpResponse.success(res, JSON.parse(cachedUser))
+            const data = JSON.parse(cachedUser);
+            HttpResponse.success(res, data);
         }
-
-
-
-
     } catch (error) {
+        console.log(error);
         throw new CustomError("Failed to fetch user info", 500);
     }
 

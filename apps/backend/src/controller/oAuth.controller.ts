@@ -144,7 +144,7 @@ function setTokenCookie(res: Response, refresh_token: string, access_token: stri
 
 function generateToken(userPayload: { userId: string, username: string }): { access_token: string, refresh_token: string } {
 
-  const access_token = jwt.sign(userPayload, JWT_SECRET_KEY, { expiresIn: "3h" });
+  const access_token = jwt.sign(userPayload, JWT_SECRET_KEY, { expiresIn: "1m" });
   const refresh_token = jwt.sign(userPayload, JWT_SECRET_KEY, { expiresIn: "30d" });
   return { refresh_token, access_token }
 } 
