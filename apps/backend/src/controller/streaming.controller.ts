@@ -86,9 +86,9 @@ export async function connectMediaServer(req: Request, res: Response) {
             throw new CustomError("Unauthorized access to this stream.", 403);
         }
 
-        const whipEndpoint = `http://localhost:8889/live/${data.streamId}/whip`;
-        const whipResponse = await axios.post(
-            whipEndpoint,
+        const whepEndpoint = `http://localhost:8889/stream/${data.streamId}/whep`;
+        const whepResponse = await axios.post(
+            whepEndpoint,
             data.sdp,
             { headers: { "Content-Type": "application/sdp" } }
         );
@@ -96,7 +96,7 @@ export async function connectMediaServer(req: Request, res: Response) {
 
 
 
-        HttpResponse.success(res, { sdpAnswer: whipResponse.data });
+        HttpResponse.success(res, { sdpAnswer: whepResponse.data });
     } catch (error) {
         if (error instanceof AxiosError) {
             const status = error.response?.status || 500;
@@ -243,6 +243,7 @@ export async function updateStreamOnLive(req: Request, res: Response) {
 
 
 export async function obsStream(req: Request, res: Response) {
+  try {
     const streamId = req.query.streamId?.toString()
 
     if (!streamId) throw new CustomError("Invalid Query", 404);
@@ -254,7 +255,7 @@ export async function obsStream(req: Request, res: Response) {
         throw new CustomError("Obs not connected with Media server", 404)
     }
 
-    const verifyStream = result.items.filter((data: any) => data.name.replace("live/", "") === streamId);
+    const verifyStream = result.items.filter((data: any) => data.name.replace("stream/", "") === streamId);
 
     if (!verifyStream[0].ready) {
         throw new CustomError("Stream is not ready", 404);
@@ -263,5 +264,11 @@ export async function obsStream(req: Request, res: Response) {
 
 
     HttpResponse.success(res, {}, "Obs stream is live now", 200);
+  } catch (error) {
+    if(error instanceof CustomError){
+        throw error;
+    }
+    throw new CustomError("Something went wrong",500);
+  }
 
 }

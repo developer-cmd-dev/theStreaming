@@ -31,7 +31,7 @@ router.post('/end-stream/:streamId',authMiddleware,endStream)
 router.get('/record-streaming/:streamId',startRecordingStream);
 router.delete('/stream',authMiddleware,deleteStream);
 router.patch('/update-on-live',authMiddleware,updateStreamOnLive);
-router.get('/internal/get-obs-stream',obsStream);
+router.get('/internal/get-obs-stream',authMiddleware,obsStream);
 
 // Agent Route
 

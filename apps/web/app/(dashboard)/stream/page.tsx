@@ -12,45 +12,179 @@ import { axiosHandler } from '@repo/axios'
 import { CreatedStreamState, HttpResponse } from '@repo/zod/schema'
 import { IconAlertSquareRounded, IconChevronRight, IconEdit, IconHandThreeFingers, IconInfoCircle, IconVideo } from '@tabler/icons-react'
 import Image from 'next/image'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { clearInterval } from "node:timers";
+import { toast } from '@/components/ui/toast'
+import { CustomError } from '@repo/customError'
 
 
 const sessionInfoItems = ['Session', 'Viewers', 'Followers', 'Sub Counts', 'Time Live']
 
-function page() {
+export default function page() {
 
-  const { currentStreamState,setCurrentStreamState } = useStreamState((state) => state);
-  const {userPayload}=useUserAuth((state)=>state)
+  const { currentStreamState, setCurrentStreamState } = useStreamState((state) => state);
+  const { userPayload } = useUserAuth((state) => state);
 
 
   useEffect(() => {
-
-    (async()=>{
-
-      if(userPayload && !currentStreamState){
+    (async () => {
+      if (userPayload && !currentStreamState) {
         try {
-          
+
           const response = await axiosHandler<HttpResponse<CreatedStreamState[]>>({
-            method:"GET",
-            url:`${HTTP_BACKEND_URL}/stream`,
-            withCredentials:true
+            method: "GET",
+            url: `${HTTP_BACKEND_URL}/stream`,
+            withCredentials: true
           })
-
           setCurrentStreamState(response.data[0]);
-
 
         } catch (error) {
           console.log(error)
         }
-
-
-
-        
       }
     })()
-    
+
 
   }, [userPayload])
+
+  async function checkStreamIsLiveOrNot() {
+    try {
+      const response = await axiosHandler<HttpResponse>({
+        method: "GET",
+        url: `${HTTP_BACKEND_URL}/internal/get-obs-stream?streamId=${currentStreamState?.id}`,
+        withCredentials: true,
+      })
+      if (response.status === 200) {
+        toast.add({
+          type: "success",
+          description: response.message
+        })
+
+        connectWebRtc();
+
+      }
+    } catch (error) {
+      if (error instanceof CustomError) {
+        toast.add({
+          type: "error",
+          description: error.message
+        })
+      }
+    }
+  }
+
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+
+  const [status, setStatus] = useState("Connecting...");
+
+
+  async function connectWebRtc() {
+    let stopped = false;
+    try {
+      const pc = new RTCPeerConnection();
+
+      pcRef.current = pc;
+
+      // We only want to RECEIVE video from MediaMTX.
+      pc.addTransceiver("video", {
+        direction: "recvonly",
+      });
+
+      // If your stream also has audio:
+      pc.addTransceiver("audio", {
+        direction: "recvonly",
+      });
+
+      pc.ontrack = (event) => {
+        console.log("Received track:", event.track.kind);
+
+        if (videoRef.current && event.streams[0]) {
+          videoRef.current.srcObject = event.streams[0];
+        }
+      };
+
+      pc.oniceconnectionstatechange = () => {
+        console.log(
+          "ICE state:",
+          pc.iceConnectionState
+        );
+
+
+        if (
+          pc.iceConnectionState === "failed" ||
+          pc.iceConnectionState === "disconnected"
+        ) {
+          setStatus("Connection failed");
+        }
+      };
+
+      const offer = await pc.createOffer();
+
+      console.log("SDP OFFER:");
+      console.log(offer.sdp);
+
+      await pc.setLocalDescription(offer);
+
+      // Wait for ICE gathering to complete.
+      await waitForIceGatheringComplete(pc);
+
+      if (stopped) return;
+      // const whepUrl =
+      //   `http://localhost:8889/stream/${streamId}/whep`;
+
+      // const response = await fetch(whepUrl, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/sdp",
+      //   },
+      //   body: pc.localDescription?.sdp,
+      // });
+
+      const response = await axiosHandler<HttpResponse<{sdpAnswer:string}>>({
+        method:"POST",
+        url:`${HTTP_BACKEND_URL}/connect-media-server`,
+        data:{
+          sdp:pc.localDescription?.sdp,
+          type:pc.localDescription?.type,
+          streamId:currentStreamState?.id
+        },
+        withCredentials:true
+      })
+
+      if (response.status!=200) {
+        throw new Error(
+          `WHEP request failed: ${response.status}`
+        );
+      }
+
+      // ------------------------------------------------
+      // 4. GET SDP ANSWER FROM MEDIAMTX
+      // ------------------------------------------------
+
+      const answerSdp =  response.data.sdpAnswer;
+
+      console.log("SDP ANSWER:");
+      console.log(answerSdp);
+
+      // ------------------------------------------------
+      // 5. SET MEDIAMTX SDP ANSWER
+      // ------------------------------------------------
+
+      await pc.setRemoteDescription({
+        type: "answer",
+        sdp: answerSdp,
+      });
+
+      console.log("WebRTC negotiation completed");
+
+    } catch (error) {
+      console.error("WebRTC error:", error);
+      setStatus("Error");
+    }
+
+  }
 
 
 
@@ -82,20 +216,41 @@ function page() {
 
           {/* stream preview */}
 
-          <div className='w-full flex-1  rounded-sm bg-brand-foreground py-2  overflow-hidden flex flex-col gap-3'>
+          <div className='w-full border flex-1  rounded-sm bg-brand-foreground py-2  overflow-hidden flex flex-col gap-3'>
             <Heading icon={<IconVideo />} title='Stream Preview' className='h-12' />
 
             <div className='relative'>
-              <Image src={!currentStreamState ? "/images/offline_banner.avif" : currentStreamState.thumbnail ?? ""}
+              {/* <Image src={!currentStreamState ? "/images/offline_banner.avif" : currentStreamState.thumbnail ?? ""}
                 alt="Gaming streaming banner"
                 loading='eager'
                 width={2048}
                 height={200}
                 className="w-full h-auto"
               />
-              <StreamStatus className='left-1/2' data={'Stream'} />
+              <StreamStatus className='left-1/2' data={'Stream'} /> */}
+
+              <video
+                id="webrtc-video"
+                autoPlay
+                playsInline
+                controls={true}
+                
+                className="w-full h-auto rounded"
+                ref={videoRef}
+              />
+        
+
+
 
             </div>
+
+            <div className=' w-full h-full flex items-center justify-center'>
+              <Button size={"lg"} onClick={() => checkStreamIsLiveOrNot()}>
+                Connect with OBS
+              </Button>
+            </div>
+
+
 
 
           </div>
@@ -121,26 +276,26 @@ function page() {
                     </CreateStreamDialog>
                   </div>
                 ) : (
-                 
-              <div className='w-full h-full flex flex-col  items-center p-2 justify-center'>
-                <div className=' h-full w-full p-2 flex flex-col gap-1 '>
-                  <div className='flex  items-center justify-between w-full  '>
-                    <h1 className='text-primary font-semibold'>
-                     {currentStreamState.title}
-                    </h1>
-                    <Button className={`h-6`}>
-                      <IconEdit />
-                    </Button>
+
+                  <div className='w-full h-full flex flex-col  items-center p-2 justify-center'>
+                    <div className=' h-full w-full p-2 flex flex-col gap-1 '>
+                      <div className='flex  items-center justify-between w-full  '>
+                        <h1 className='text-primary font-semibold'>
+                          {currentStreamState.title}
+                        </h1>
+                        <Button className={`h-6`}>
+                          <IconEdit />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className=''>
+                      <p className='text-text-muted'>
+                        {currentStreamState.description}
+                      </p>
+
+                    </div>
                   </div>
-                </div>
-
-                <div className=''>
-                  <p className='text-text-muted'>
-                   {currentStreamState.description}
-                  </p>
-
-                </div>
-              </div>
                 )
               }
 
@@ -204,7 +359,33 @@ function Heading({ title, icon, className }: { title: string, icon: React.ReactN
     </div>
   )
 }
-export default page
+
+function waitForIceGatheringComplete(
+  pc: RTCPeerConnection
+): Promise<void> {
+  return new Promise((resolve) => {
+    if (pc.iceGatheringState === "complete") {
+      resolve();
+      return;
+    }
+
+    const checkState = () => {
+      if (pc.iceGatheringState === "complete") {
+        pc.removeEventListener(
+          "icegatheringstatechange",
+          checkState
+        );
+
+        resolve();
+      }
+    };
+
+    pc.addEventListener(
+      "icegatheringstatechange",
+      checkState
+    );
+  });
+}
 
 
 const channelActionSections = [
