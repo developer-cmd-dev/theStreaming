@@ -26,7 +26,20 @@ export default function page() {
   const { userPayload } = useUserAuth((state) => state);
 
 
+
   useEffect(() => {
+
+
+    // const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    //   e.preventDefault();
+    //   e.returnValue = "";
+    // }
+
+    // window.addEventListener('beforeunload', handleBeforeUnload);
+
+
+
+
     (async () => {
       if (userPayload && !currentStreamState) {
         try {
@@ -45,6 +58,12 @@ export default function page() {
     })()
 
 
+    // return () => {
+    //   window.removeEventListener('beforeunload', handleBeforeUnload); // Cleanup
+    // };
+
+
+
   }, [userPayload])
 
   async function checkStreamIsLiveOrNot() {
@@ -60,7 +79,13 @@ export default function page() {
           description: response.message
         })
 
-        connectWebRtc();
+        await connectWebRtc();
+
+        if (currentStreamState) {
+          setCurrentStreamState({ ...currentStreamState, isLive: true })
+        }
+
+
 
       }
     } catch (error) {
@@ -77,7 +102,9 @@ export default function page() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
 
-  const [status, setStatus] = useState("Connecting...");
+  const [iceConnectionStatus, setIceconnectionstatus] = useState<
+    "new" | "checking" | "connected" | "completed" | "disconnected" | "failed" | "closed"
+  >("disconnected");
 
 
   async function connectWebRtc() {
@@ -111,66 +138,69 @@ export default function page() {
           pc.iceConnectionState
         );
 
+        switch (pc.iceConnectionState) {
+          case "new":
+            setIceconnectionstatus("new");
+            break;
 
-        if (
-          pc.iceConnectionState === "failed" ||
-          pc.iceConnectionState === "disconnected"
-        ) {
-          setStatus("Connection failed");
+          case "checking":
+            setIceconnectionstatus("checking");
+            break;
+          case "connected":
+            setIceconnectionstatus("connected");
+            updateStream({ isLive: true });
+            break;
+          case "completed":
+            setIceconnectionstatus("completed");
+            break;
+          case "disconnected": {
+            stopped = true;
+            updateStream({ isLive: false, active: false });
+            setIceconnectionstatus("disconnected");
+
+          }
+            break;
+          case "failed":
+            stopped = true;
+            setIceconnectionstatus("failed");
+            break;
+          case "closed":
+            stopped = true;
+            setIceconnectionstatus("closed");
+            break;
+          default:
+            setIceconnectionstatus("disconnected");
+
         }
       };
 
       const offer = await pc.createOffer();
-
-      console.log("SDP OFFER:");
-      console.log(offer.sdp);
-
       await pc.setLocalDescription(offer);
 
       // Wait for ICE gathering to complete.
       await waitForIceGatheringComplete(pc);
 
       if (stopped) return;
-      // const whepUrl =
-      //   `http://localhost:8889/stream/${streamId}/whep`;
 
-      // const response = await fetch(whepUrl, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/sdp",
-      //   },
-      //   body: pc.localDescription?.sdp,
-      // });
 
-      const response = await axiosHandler<HttpResponse<{sdpAnswer:string}>>({
-        method:"POST",
-        url:`${HTTP_BACKEND_URL}/connect-media-server`,
-        data:{
-          sdp:pc.localDescription?.sdp,
-          type:pc.localDescription?.type,
-          streamId:currentStreamState?.id
+      const response = await axiosHandler<HttpResponse<{ sdpAnswer: string }>>({
+        method: "POST",
+        url: `${HTTP_BACKEND_URL}/connect-media-server`,
+        data: {
+          sdp: pc.localDescription?.sdp,
+          type: pc.localDescription?.type,
+          streamId: currentStreamState?.id
         },
-        withCredentials:true
+        withCredentials: true
       })
 
-      if (response.status!=200) {
+      if (response.status != 200) {
         throw new Error(
           `WHEP request failed: ${response.status}`
         );
       }
 
-      // ------------------------------------------------
-      // 4. GET SDP ANSWER FROM MEDIAMTX
-      // ------------------------------------------------
-
-      const answerSdp =  response.data.sdpAnswer;
-
-      console.log("SDP ANSWER:");
-      console.log(answerSdp);
-
-      // ------------------------------------------------
-      // 5. SET MEDIAMTX SDP ANSWER
-      // ------------------------------------------------
+      const answerSdp = response.data.sdpAnswer;
 
       await pc.setRemoteDescription({
         type: "answer",
@@ -181,9 +211,27 @@ export default function page() {
 
     } catch (error) {
       console.error("WebRTC error:", error);
-      setStatus("Error");
     }
 
+  }
+
+
+  async function updateStream(data: object) {
+    try {
+      const response = await axiosHandler<HttpResponse>({
+        method: "PUT",
+        url: `${HTTP_BACKEND_URL}/stream`,
+        data: {
+          streamId: currentStreamState?.id,
+          data
+        },
+        withCredentials: true
+      })
+
+      console.log(response)
+    } catch (error) {
+      console.log(error)
+    }
   }
 
 
@@ -207,7 +255,7 @@ export default function page() {
 
             <div className="grid grid-cols-5 h-22 border border-x-0">
               {sessionInfoItems.map((value, index) => (<div key={index} className='border-r p-2 flex flex-col justify-around  '>
-                {index === 0 ? (<span className='bg-foreground w-fit text-sm px-1 rounded text-background'>OFFLINE</span>) : (<span>-</span>)}
+                {index === 0 ? (<span className='bg-foreground w-fit text-sm px-1 rounded text-background'>{currentStreamState?.isLive ? "ONLINE" : "OFFLINE"}</span>) : (<span>-</span>)}
                 <p className='text-text-secondary'>{value}</p>
               </div>))}
             </div>
@@ -219,37 +267,36 @@ export default function page() {
           <div className='w-full border flex-1  rounded-sm bg-brand-foreground py-2  overflow-hidden flex flex-col gap-3'>
             <Heading icon={<IconVideo />} title='Stream Preview' className='h-12' />
 
-            <div className='relative'>
-              {/* <Image src={!currentStreamState ? "/images/offline_banner.avif" : currentStreamState.thumbnail ?? ""}
-                alt="Gaming streaming banner"
-                loading='eager'
-                width={2048}
-                height={200}
-                className="w-full h-auto"
-              />
-              <StreamStatus className='left-1/2' data={'Stream'} /> */}
-
-              <video
-                id="webrtc-video"
-                autoPlay
-                playsInline
-                controls={true}
-                
-                className="w-full h-auto rounded"
-                ref={videoRef}
-              />
-        
-
+            {/* {iceConnectionStatus === 'disconnected' ? (
+              <div className='relative'>
+                <Image src={!currentStreamState ? "/images/offline_banner.avif" : currentStreamState.thumbnail ?? ""}
+                  alt="Gaming streaming banner"
+                  loading='eager'
+                  width={2048}
+                  height={200}
+                  className="w-full h-auto"
+                />
+                <StreamStatus className='left-1/2' data={!currentStreamState ? "No active stream" : "Stream is offline"} />
+              </div>
+            ) : (<video
+              id="webrtc-video"
+              autoPlay
+              playsInline
+              controls={false}
+              className="w-full h-auto rounded"
+              ref={videoRef}
+            />
 
 
-            </div>
-
-            <div className=' w-full h-full flex items-center justify-center'>
-              <Button size={"lg"} onClick={() => checkStreamIsLiveOrNot()}>
-                Connect with OBS
-              </Button>
-            </div>
-
+            )} */}
+            <video
+              id="webrtc-video"
+              autoPlay
+              playsInline
+              controls={false}
+              className="w-full h-auto rounded"
+              ref={videoRef}
+            />
 
 
 
@@ -277,23 +324,27 @@ export default function page() {
                   </div>
                 ) : (
 
-                  <div className='w-full h-full flex flex-col  items-center p-2 justify-center'>
-                    <div className=' h-full w-full p-2 flex flex-col gap-1 '>
-                      <div className='flex  items-center justify-between w-full  '>
-                        <h1 className='text-primary font-semibold'>
-                          {currentStreamState.title}
-                        </h1>
-                        <Button className={`h-6`}>
-                          <IconEdit />
-                        </Button>
-                      </div>
+                  <div className='w-full h-full flex flex-col   items-center p-2 justify-start'>
+                    <div className='flex  items-center justify-between w-full  '>
+                      <h1 className='text-primary font-semibold'>
+                        {currentStreamState.title}
+                      </h1>
+                      <Button className={`h-6`}>
+                        <IconEdit />
+                      </Button>
                     </div>
 
-                    <div className=''>
+                    <div className='flex items-center justify-start w-full'>
                       <p className='text-text-muted'>
                         {currentStreamState.description}
                       </p>
 
+                    </div>
+
+                    <div className=' w-full h-full flex items-center justify-center'>
+                      <Button size={"lg"} onClick={() => checkStreamIsLiveOrNot()}>
+                        Connect with OBS
+                      </Button>
                     </div>
                   </div>
                 )

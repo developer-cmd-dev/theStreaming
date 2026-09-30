@@ -216,27 +216,21 @@ export async function deleteStream(req: Request, res: Response) {
 
 export async function updateStreamOnLive(req: Request, res: Response) {
 
-    const { streamId, title } = req.body;
+    const { streamId, data } = req.body;
 
-    if (!title) {
-        throw new CustomError("Title is required", 400);
-    }
     try {
-
-        await prisma.stream.update({
+      await prisma.stream.update({
             where: {
                 id: streamId
             },
-            data: {
-                title
-            }
+            data
         })
+
 
         HttpResponse.success(res);
 
     } catch (error) {
-        console.log(error)
-        throw error;
+        throw new CustomError("Failed to update stream state", 400);
     }
 
 }
@@ -256,7 +250,9 @@ export async function obsStream(req: Request, res: Response) {
     }
 
     const verifyStream = result.items.filter((data: any) => data.name.replace("stream/", "") === streamId);
-
+    if(!verifyStream || verifyStream.length ===0){
+        throw new CustomError("Invalid Stream Key,Check Obs Configuration.", 400)
+    }
     if (!verifyStream[0].ready) {
         throw new CustomError("Stream is not ready", 404);
     }
@@ -268,6 +264,7 @@ export async function obsStream(req: Request, res: Response) {
     if(error instanceof CustomError){
         throw error;
     }
+    console.log(error)
     throw new CustomError("Something went wrong",500);
   }
 
