@@ -44,6 +44,7 @@ export async function createStream(req: Request, res: Response) {
 
         HttpResponse.success(res, response);
     } catch (error) {
+        console.log(error)
         throw new CustomError("Failed to create stream", 500)
     }
 
@@ -219,7 +220,7 @@ export async function updateStreamOnLive(req: Request, res: Response) {
     const { streamId, data } = req.body;
 
     try {
-      await prisma.stream.update({
+     const response =  await prisma.stream.update({
             where: {
                 id: streamId
             },
@@ -227,7 +228,7 @@ export async function updateStreamOnLive(req: Request, res: Response) {
         })
 
 
-        HttpResponse.success(res);
+        HttpResponse.success(res,response);
 
     } catch (error) {
         throw new CustomError("Failed to update stream state", 400);

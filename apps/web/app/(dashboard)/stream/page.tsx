@@ -157,7 +157,6 @@ export default function page() {
             stopped = true;
             updateStream({ isLive: false, active: false });
             setIceconnectionstatus("disconnected");
-
           }
             break;
           case "failed":
@@ -218,7 +217,7 @@ export default function page() {
 
   async function updateStream(data: object) {
     try {
-      const response = await axiosHandler<HttpResponse>({
+      const response = await axiosHandler<HttpResponse<CreatedStreamState>>({
         method: "PUT",
         url: `${HTTP_BACKEND_URL}/stream`,
         data: {
@@ -228,8 +227,8 @@ export default function page() {
         withCredentials: true
       })
 
-      console.log(response)
-    } catch (error) {
+      setCurrentStreamState(response.data)
+    } catch (error) { 
       console.log(error)
     }
   }
@@ -267,7 +266,7 @@ export default function page() {
           <div className='w-full border flex-1  rounded-sm bg-brand-foreground py-2  overflow-hidden flex flex-col gap-3'>
             <Heading icon={<IconVideo />} title='Stream Preview' className='h-12' />
 
-            {/* {iceConnectionStatus === 'disconnected' ? (
+            {iceConnectionStatus === 'disconnected' ? (
               <div className='relative'>
                 <Image src={!currentStreamState ? "/images/offline_banner.avif" : currentStreamState.thumbnail ?? ""}
                   alt="Gaming streaming banner"
@@ -288,15 +287,7 @@ export default function page() {
             />
 
 
-            )} */}
-            <video
-              id="webrtc-video"
-              autoPlay
-              playsInline
-              controls={false}
-              className="w-full h-auto rounded"
-              ref={videoRef}
-            />
+            )}
 
 
 
@@ -342,9 +333,22 @@ export default function page() {
                     </div>
 
                     <div className=' w-full h-full flex items-center justify-center'>
-                      <Button size={"lg"} onClick={() => checkStreamIsLiveOrNot()}>
-                        Connect with OBS
-                      </Button>
+                      {
+                        iceConnectionStatus==="connected" ? (
+                        <div className='w-full flex flex-col gap-4 items-center'>
+                            <div className='flex items-center justify-center gap-2'>
+                           <h1 className='font-bold'>OBS</h1> <span className='bg-brand px-3 py-1 text-black text-sm rounded-md'>CONNECTED</span>
+                            </div>
+                            <Button variant={"destructive"}>
+                              End Stream
+                            </Button>
+                        </div>
+                        ) : (
+                          <Button size={"lg"} onClick={() => checkStreamIsLiveOrNot()}>
+                            Connect with OBS
+                          </Button>
+                        )
+                      }
                     </div>
                   </div>
                 )

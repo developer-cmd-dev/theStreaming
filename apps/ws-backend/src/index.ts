@@ -4,7 +4,6 @@ import ErrorResponse from './error/error'
 import Room from './room'
 import User from './user'
 import jwt, { JsonWebTokenError } from 'jsonwebtoken'
-import { redisClient } from '@repo/redis/redisClient'
 const wss = new WebSocketServer({
     port: 8080
 })
