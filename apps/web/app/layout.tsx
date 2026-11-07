@@ -31,7 +31,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col " >
    
             {children}
-            <Toaster />
+            <Toaster  />
+
        
       </body>
     </html>

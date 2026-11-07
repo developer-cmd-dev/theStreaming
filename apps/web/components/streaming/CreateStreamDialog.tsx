@@ -30,6 +30,7 @@ function CreateStreamDialog({ children }: { children: React.ReactNode }) {
                 type: 'error',
                 description: "Invalid Input"
             })
+            setLoading(false);
             return
         }
         const formData = new FormData();
@@ -61,7 +62,10 @@ function CreateStreamDialog({ children }: { children: React.ReactNode }) {
             const response = await axiosHandler<HttpResponse<CreatedStreamState>>(payload);
             setCurrentStreamState(response.data);
         } catch (error) {
-            console.log(error);
+            toast.add({
+                type: 'error',
+                description: "Failed to create stream"
+            })
 
         } finally {
             setLoading(false)
@@ -132,7 +136,7 @@ function CreateStreamDialog({ children }: { children: React.ReactNode }) {
                         onClick={handleSubmit}
                         className="w-full mt-4 bg-brand text-background py-2 px-4 rounded font-semibold hover:bg-brand-foreground hover:text-foreground transition-colors duration-200"
                     >
-                        {loading ? <Spinner/> : "Create Stream"}
+                        {loading ? <Spinner /> : "Create Stream"}
                     </Button>
 
                 </div>

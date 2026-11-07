@@ -206,7 +206,7 @@ function Toaster({
     <ToastProvider toastManager={toastManager} {...props}>
       {children}
       <ToastPortal>
-        <ToastViewport>
+        <ToastViewport className="fixed right-0 top-0 z-[99999] flex flex-col gap-2 p-4">
           <ToastList />
         </ToastViewport>
       </ToastPortal>

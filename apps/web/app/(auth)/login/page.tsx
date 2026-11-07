@@ -52,10 +52,12 @@ function Login() {
       const payload: AxiosPayload = {
         url: HTTP_BACKEND_URL + '/login',
         method: 'POST',
-        data
+        data,
+        withCredentials: true
       }
       const response = await axiosHandler<HttpResponse<PublicUser>>(payload);
       setUserPayloadState(response.data);
+      
       setLoading({ for: 'submitButton', isLoading: false })
       router.push('/')
 

@@ -125,17 +125,19 @@ export async function login(req: Request, res: Response) {
     }
     res.cookie("refresh_token", refresh_token, {
         httpOnly: true,
-        secure: true,
-        sameSite: "strict",
+        secure: false,
+        sameSite: "lax",
         priority:"high",
+        path: "/",
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
 
     })
     res.cookie("access_token", access_token, {
         httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-        priority:"high",
+        secure: false,
+        sameSite: "lax",
+        // priority:"high",
+        path: "/",
         maxAge: 12 * 60 * 60 * 1000 // 3 hours
     })
 
